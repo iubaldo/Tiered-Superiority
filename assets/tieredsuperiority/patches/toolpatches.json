@@ -1,0 +1,86 @@
+[
+	{
+		"file": "game:itemtypes/tool/pickaxe",
+		"op": "add",
+		"path": "/class",
+		"value": "TSItemPickaxe"
+	},
+	{
+		"file": "game:itemtypes/tool/axe-metal",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemAxe"
+	},
+	{
+		"file": "game:itemtypes/tool/axe-stone",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemAxe"
+	},
+	{
+		"file": "game:itemtypes/tool/hammer",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemHammer"
+	},
+	{
+		"file": "game:itemtypes/tool/scythe",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemScythe"
+	},
+	{
+		"file": "game:itemtypes/tool/prospectingpick",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemProspectingPick"
+	},
+	{
+		"file": "game:itemtypes/tool/shears",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemShears"
+	},
+	{
+		"file": "game:itemtypes/tool/knife",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemKnife"
+	},
+	{
+		"file": "game:itemtypes/tool/blade",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemSword"
+	},
+	{
+		"file": "game:itemtypes/tool/spear",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemSpear"
+	},
+	{
+		"file": "game:itemtypes/tool/hoe",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemHoe"
+	},
+	{
+		"file": "game:itemtypes/tool/shovel",
+		"op": "add",
+		"path": "/class",
+		"value": "TSItemShovel"
+	},
+	{
+		"file": "game:itemtypes/tool/cleaver",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemCleaver"
+	},
+	{
+		"file": "game:itemtypes/tool/chisel",
+		"op": "replace",
+		"path": "/class",
+		"value": "TSItemChisel"
+	}
+]

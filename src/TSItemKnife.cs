@@ -1,15 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Vintagestory.API.Common;
+﻿using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Datastructures;
-using Vintagestory.API.Client;
-using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
 namespace tieredsuperiority.src
@@ -24,33 +14,33 @@ namespace tieredsuperiority.src
 
             switch (Variant["material"]) // read from tool json
             {
-                case "bone-chert": adjustedTier = 0; break;
-                case "bone-granite": adjustedTier = 0; break;
-                case "bone-andesite": adjustedTier = 0; break;
-                case "bone-basalt": adjustedTier = 0; break;
-                case "bone-obsidian": adjustedTier = 0; break;
-                case "bone-peridotite": adjustedTier = 0; break;
-                case "bone-flint": adjustedTier = 0; break;
-                case "chert": adjustedTier = 0; break;
-                case "granite": adjustedTier = 0; break;
-                case "andesite": adjustedTier = 0; break;
-                case "basalt": adjustedTier = 0; break;
-                case "obsidian": adjustedTier = 0; break;
-                case "peridotite": adjustedTier = 0; break;
-                case "flint": adjustedTier = 0; break;
+                case "bone-chert": adjustedTier = 1; break;
+                case "bone-granite": adjustedTier = 1; break;
+                case "bone-andesite": adjustedTier = 1; break;
+                case "bone-basalt": adjustedTier = 1; break;
+                case "bone-obsidian": adjustedTier = 1; break;
+                case "bone-peridotite": adjustedTier = 1; break;
+                case "bone-flint": adjustedTier = 1; break;
+                case "chert": adjustedTier = 1; break;
+                case "granite": adjustedTier = 1; break;
+                case "andesite": adjustedTier = 1; break;
+                case "basalt": adjustedTier = 1; break;
+                case "obsidian": adjustedTier = 1; break;
+                case "peridotite": adjustedTier = 1; break;
+                case "flint": adjustedTier = 1; break;
 
-                case "copper": adjustedTier = 1; break;
-                case "silver": adjustedTier = 1; break;
-                case "gold": adjustedTier = 1; break;
+                case "copper": adjustedTier = 2; break;
+                case "silver": adjustedTier = 2; break;
+                case "gold": adjustedTier = 2; break;
 
-                case "tinbronze": adjustedTier = 2; break;
-                case "bismuthbronze": adjustedTier = 2; break;
-                case "blackbronze": adjustedTier = 2; break;
+                case "tinbronze": adjustedTier = 3; break;
+                case "bismuthbronze": adjustedTier = 3; break;
+                case "blackbronze": adjustedTier = 3; break;
 
-                case "iron": adjustedTier = 3; break;
-                case "meteoriciron": adjustedTier = 3; break;
+                case "iron": adjustedTier = 4; break;
+                case "meteoriciron": adjustedTier = 4; break;
 
-                case "steel": adjustedTier = 4; break;
+                case "steel": adjustedTier = 5; break;
 
                 default: api.Logger.Warning("[Tiered Superiority] No valid variants found for " + Code + ", defaulting tier to 0"); adjustedTier = 0; break;
             }

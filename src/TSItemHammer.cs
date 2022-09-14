@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Datastructures;
-using Vintagestory.API.Client;
-using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
 namespace tieredsuperiority.src
@@ -18,24 +9,25 @@ namespace tieredsuperiority.src
     {
         int adjustedTier = 0; // ToolTier is 0, so use metal type as a marker instead
 
+
         public override void OnLoaded(ICoreAPI api)
         {
             base.OnLoaded(api);
 
             switch (Variant["metal"]) // read from tool json
             {
-                case "copper": adjustedTier = 1; break;
-                case "silver": adjustedTier = 1; break;
-                case "gold": adjustedTier = 1; break;
+                case "copper": adjustedTier = 2; break;
+                case "silver": adjustedTier = 2; break;
+                case "gold": adjustedTier = 2; break;
 
-                case "tinbronze": adjustedTier = 2; break;
-                case "bismuthbronze": adjustedTier = 2; break;
-                case "blackbronze": adjustedTier = 2; break;
+                case "tinbronze": adjustedTier = 3; break;
+                case "bismuthbronze": adjustedTier = 3; break;
+                case "blackbronze": adjustedTier = 3; break;
 
-                case "iron": adjustedTier = 3; break;
-                case "meteoriciron": adjustedTier = 3; break;
+                case "iron": adjustedTier = 4; break;
+                case "meteoriciron": adjustedTier = 4; break;
 
-                case "steel": adjustedTier = 4; break;
+                case "steel": adjustedTier = 5; break;
 
                 default: api.Logger.Warning("[Tiered Superiority] No valid variants found for " + Code + ", defaulting tier to 0"); adjustedTier = 0; break;
             }
@@ -61,7 +53,7 @@ namespace tieredsuperiority.src
         }
 
 
-        // need to delay since hammer handles serverside updates uniquely
+        // need to delay slightly since hammer handles serverside updates uniquely
         private void DelayedCheck(int initDurability, ItemSlot slot, EntityAgent byEntity, BlockEntityAnvil bea)
         {
             // more-or-less copied from worldproperties\block\metal, can't be assed to find a way to read from it

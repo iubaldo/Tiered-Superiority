@@ -1,38 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using ProtoBuf;
-
-using HarmonyLib;
-using System.Reflection;
-using System.Reflection.Emit;
 
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Client;
 using Vintagestory.API.Server;
-using Vintagestory.GameContent;
 
-[assembly: ModInfo("TieredSuperiority",
-    Description = "Reduces tool/weapon damage when working with objects of lower tiers.",
-    Side = "Server",
-    Authors = new[] { "Landar" },
-    Version = "1.0.0")]
 
 // Notes:
 // Refunding spear durability on throw still not working
+// Chisel not implemented in this version
+// Weapons don't take target armor tier into account yet
+
+
 namespace tieredsuperiority.src
 {
-    // just used to print error logs from harmony patch, remove later
-    public class API
-    {
-        public static ICoreAPI api;
-    }
-
-
     class TieredSuperiorityMain : ModSystem
     {
         bool requireInit = true; // init sounds
@@ -51,18 +34,14 @@ namespace tieredsuperiority.src
 
             api.Logger.Warning("Loading Tiered Superiority...");
 
-            API.api = api;
-            var harmony = new Harmony("tieredsuperiority");
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
-
             api.RegisterItemClass("TSItemAxe", typeof(TSItemAxe));
-            api.RegisterItemClass("TSItemChisel", typeof(TSItemChisel));
             api.RegisterItemClass("TSItemCleaver", typeof(TSItemCleaver));
             api.RegisterItemClass("TSItemHammer", typeof(TSItemHammer));
             api.RegisterItemClass("TSItemHoe", typeof(TSItemHoe));
             api.RegisterItemClass("TSItemKnife", typeof(TSItemKnife));
             api.RegisterItemClass("TSItemPickaxe", typeof(TSItemPickaxe));
             api.RegisterItemClass("TSItemProspectingPick", typeof(TSItemProspectingPick));
+            api.RegisterItemClass("TSItemSaw", typeof(TSItemSaw));
             api.RegisterItemClass("TSItemScythe", typeof(TSItemScythe));                      
             api.RegisterItemClass("TSItemShears", typeof(TSItemShears));
             api.RegisterItemClass("TSItemShovel", typeof(TSItemShovel));           
@@ -163,31 +142,4 @@ namespace tieredsuperiority.src
     // tells the client to play a sound
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class SoundMessage { public bool message; }
-
-
-    // removes the 1/4 chance to not consume durability from BlockEntityChisel
-    [HarmonyPatch(typeof(BlockEntityChisel), "UpdateVoxel")]
-    public class Patch_BlockEntityChisel_UpdateVoxel 
-    {
-        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            var foundSection = false;
-            var codes = new List<CodeInstruction>(instructions);
-            for (var i = 0; i < codes.Count; i++)
-            {
-                if (codes[i].opcode == OpCodes.Ldc_I4_3) // skip Api.World.Rand.Next(3) == 0
-                {
-                    codes.RemoveRange(i - 4, 7);
-                    foundSection = true;
-                    API.api.Logger.Warning("[Tiered Superiority] successfully executed patch!");
-                    break;
-                }
-            }
-
-            if (!foundSection)
-                API.api.Logger.Warning("[Tiered Superiority] failed to execute patch...");
-
-            return codes;
-        }
-    }
 }

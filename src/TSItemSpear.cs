@@ -1,24 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Datastructures;
-using Vintagestory.API.Client;
-using Vintagestory.API.Server;
+﻿using Vintagestory.API.Common;
 using Vintagestory.GameContent;
 
 namespace tieredsuperiority.src
 {
-    // For pickaxe, shovel, or other basic tools with no additional functionality
     class TSItemSpear : ItemSpear
     {
         int initAttackDurability = -1;
-        int adjustedTier = 0; // ToolTier is 0, so use metal type as a marker instead
+        int adjustedTier = 1; // ToolTier is 0, so use metal type as a marker instead
+        // note, could also use attack tier instead?
+
 
         public override void OnLoaded(ICoreAPI api)
         {
@@ -26,30 +16,30 @@ namespace tieredsuperiority.src
 
             switch (Variant["material"]) // read from tool json
             {
-                case "chert": adjustedTier = 0; break;
-                case "granite": adjustedTier = 0; break;
-                case "andesite": adjustedTier = 0; break;
-                case "basalt": adjustedTier = 0; break;
-                case "obsidian": adjustedTier = 0; break;
-                case "peridotite": adjustedTier = 0; break;
-                case "flint": adjustedTier = 0; break;
+                case "chert": adjustedTier = 1; break;
+                case "granite": adjustedTier = 1; break;
+                case "andesite": adjustedTier = 1; break;
+                case "basalt": adjustedTier = 1; break;
+                case "obsidian": adjustedTier = 1; break;
+                case "peridotite": adjustedTier = 1; break;
+                case "flint": adjustedTier = 1; break;
 
-                case "copper": adjustedTier = 1; break;
-                case "scrap": adjustedTier = 1; break;
+                case "copper": adjustedTier = 2; break;
+                case "scrap": adjustedTier = 2; break;
 
-                case "tinbronze": adjustedTier = 2; break;
-                case "bismuthbronze": adjustedTier = 2; break;
-                case "blackbronze": adjustedTier = 2; break;
-                case "hacking": adjustedTier = 2; break;
-                case "ornate-silver": adjustedTier = 2; break;
-                case "ornate-gold": adjustedTier = 2; break;
+                case "tinbronze": adjustedTier = 3; break;
+                case "bismuthbronze": adjustedTier = 3; break;
+                case "blackbronze": adjustedTier = 3; break;
+                case "hacking": adjustedTier = 3; break;
 
-                case "iron": adjustedTier = 3; break;
-                case "meteoriciron": adjustedTier = 3; break;
+                case "ornate-silver": adjustedTier = 4; break;
+                case "ornate-gold": adjustedTier = 4; break;
+                case "iron": adjustedTier = 4; break;
+                case "meteoriciron": adjustedTier = 4; break;
 
-                case "steel": adjustedTier = 4; break;
+                case "steel": adjustedTier = 5; break;
 
-                default: api.Logger.Warning("[Tiered Superiority] No valid variants found for " + Code + ", defaulting tier to 0"); adjustedTier = 0; break;
+                default: api.Logger.Warning("[Tiered Superiority] No valid variants found for " + Code + ", defaulting tier to 0"); adjustedTier = 1; break;
             }
         }
 

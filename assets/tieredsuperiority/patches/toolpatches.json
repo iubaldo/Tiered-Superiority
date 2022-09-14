@@ -78,9 +78,9 @@
 		"value": "TSItemCleaver"
 	},
 	{
-		"file": "game:itemtypes/tool/chisel",
-		"op": "replace",
+		"file": "game:itemtypes/tool/saw",
+		"op": "add",
 		"path": "/class",
-		"value": "TSItemChisel"
+		"value": "TSItemSaw"
 	}
 ]

@@ -31,11 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\..\..\..\..\vintagestory 1.17.rc1\Lib\0Harmony.dll</HintPath>
-    </Reference>
     <Reference Include="protobuf-net">
-      <HintPath>..\..\..\..\..\vintagestory 1.17.rc1\Lib\protobuf-net.dll</HintPath>
+      <HintPath>D:\Games\Vintagestory\Lib\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,25 +42,27 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="VintagestoryAPI">
-      <HintPath>..\..\..\..\..\vintagestory 1.17.rc1\VintagestoryAPI.dll</HintPath>
+    <Reference Include="VintagestoryAPI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\Games\Vintagestory\VintagestoryAPI.dll</HintPath>
     </Reference>
-    <Reference Include="VSCreativeMod">
-      <HintPath>..\..\..\..\..\vintagestory 1.17.rc1\Mods\VSCreativeMod.dll</HintPath>
+    <Reference Include="VSCreativeMod, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\Games\Vintagestory\Mods\VSCreativeMod.dll</HintPath>
     </Reference>
-    <Reference Include="VSEssentials">
-      <HintPath>..\..\..\..\..\vintagestory 1.17.rc1\Mods\VSEssentials.dll</HintPath>
+    <Reference Include="VSEssentials, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\Games\Vintagestory\Mods\VSEssentials.dll</HintPath>
     </Reference>
-    <Reference Include="VSSurvivalMod">
-      <HintPath>..\..\..\..\..\vintagestory 1.17.rc1\Mods\VSSurvivalMod.dll</HintPath>
+    <Reference Include="VSSurvivalMod, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\Games\Vintagestory\Mods\VSSurvivalMod.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\RedirectLogs.cs" />
     <Compile Include="src\TieredSuperiorityMain.cs" />
     <Compile Include="src\TSItemAxe.cs" />
-    <Compile Include="src\TSItemChisel.cs" />
     <Compile Include="src\TSItemCleaver.cs" />
     <Compile Include="src\TSItemHammer.cs" />
     <Compile Include="src\TSItemHoe.cs" />
@@ -82,6 +81,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="modinfo.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -74,6 +74,51 @@
             </summary>
             <param name="dt">the Delta or change in Time</param>
         </member>
+        <member name="T:Vintagestory.API.Common.BlockLayersAccess">
+            <summary>
+            Constants used for GetBlock or GetBlockId calls throughout the engine, to guide whether the block should be read from the solid blocks layer, the fluids layer, or perhaps both.
+            <br/>The game engine supports different block layers in 1.17+.  Currently there is a solid blocks layer (e.g. terrain, loose stones, plants, reeds) and a fluid layer (e.g. still water, flowing water, lava, lake ice). Both layers can contain a block at the same position.
+            <br/>Use the .Default value for getting blocks in the general case, use the .Solid/.Fluid value to read from the solid blocks or fluid layer specifically
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Common.BlockLayersAccess.Default">
+            <summary>
+            GetBlock:<br/>
+            Returns the contents of the solid blocks layer. If the solid blocks layer is completely empty, returns the value from the fluid layer instead. Keep in mind, the fluid layer might contain ice!<br/>
+            If this returns air (block id 0) then it really is an air block: there is nothing in either the solid blocks layer or the fluid layer
+            SetBlock:<br/>
+            Sets supplied block id. If that blocks property ForFluidsLayer is true, it will be placed in the fluids layer instead and the solid block layer will be cleared.
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Common.BlockLayersAccess.SolidBlocks">
+            <summary>
+            Returns a block from the solid blocks layer only.  <br/>A return value of air (block id 0) signifies no solid block is present but there may still be a fluid block, for example still water
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Common.BlockLayersAccess.Solid">
+            <summary>
+            Returns a block from the solid blocks layer only. Same as <see cref="F:Vintagestory.API.Common.BlockLayersAccess.SolidBlocks"/>
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Common.BlockLayersAccess.Fluid">
+            <summary>
+            Returns a block from the fluid layer only, which might contain ice. <br/>A return value of air (block id 0) signifies no fluid is present at this position
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Common.BlockLayersAccess.FluidOrSolid">
+            <summary>
+            Returns the contents of the fluid layer, unless it is empty in which case returns the solid blocks layer - useful for generating the RainHeightMap for example
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Common.BlockLayersAccess.MostSolid">
+            <summary>
+            Returns the most solid block, in the following order: <br/>
+            1. Ice in the fluid layer<br/>
+            2. Whichever block is in the solid blocks layer<br/>
+            3. Air (block id 0) if neither is present - note this access may therefore return 0 even if liquid water or lava is present in the fluid layer.<br/><br/>
+            Useful for block collision checks, side solid checks (can a block attach here?) and similar physics
+            </summary>
+        </member>
         <member name="F:Vintagestory.API.Common.EnumWorldAccessResponse.Granted">
             <summary>
             Access ok or was called client side
@@ -3672,9 +3717,9 @@
         </member>
         <member name="P:Vintagestory.API.Common.IMapRegion.ClimateMap">
             <summary>
-            Holds temperature and rain fall.
-            16-23 bits = Red = temperature
-            8-15 bits = Green = rain
+            Holds temperature and rain fall.<br/>
+            16-23 bits = Red = temperature<br/>
+            8-15 bits = Green = rain<br/>
             0-7 bits = Blue = unused 
             </summary>
         </member>
@@ -6467,17 +6512,22 @@
         </member>
         <member name="F:Vintagestory.API.Common.EnumHandling.PassThrough">
             <summary>
-            Do run default and subsequent behaviors/event listeneres
+            Do run default and subsequent behaviors/event listeneres, ignore return values
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Common.EnumHandling.Handled">
+            <summary>
+            Do run default and subsequent behaviors/event listeneres, use return values
             </summary>
         </member>
         <member name="F:Vintagestory.API.Common.EnumHandling.PreventDefault">
             <summary>
-            Do not execute the default behavior, but let subsequent behaviors/event listeneres still execute
+            Do not execute the default behavior, but let subsequent behaviors/event listeneres still execute, use return values
             </summary>
         </member>
         <member name="F:Vintagestory.API.Common.EnumHandling.PreventSubsequent">
             <summary>
-            Do not execute default behavior and do not let subsequent behaviors/event listeneres execute
+            Do not execute default behavior and do not let subsequent behaviors/event listeneres execute, use return values
             </summary>
         </member>
         <member name="T:Vintagestory.API.Common.EnumItemStorageFlags">
@@ -6811,6 +6861,21 @@
             To remove a previously added time speed modifier
             </summary>
             <param name="name"></param>
+        </member>
+        <member name="P:Vintagestory.API.Common.IGameCalendar.ElapsedSeconds">
+            <summary>
+            Amount of in-game seconds that have passed since the game started
+            </summary>
+        </member>
+        <member name="P:Vintagestory.API.Common.IGameCalendar.ElapsedHours">
+            <summary>
+            Amount of in-game hours that have passed since the game started
+            </summary>
+        </member>
+        <member name="P:Vintagestory.API.Common.IGameCalendar.ElapsedDays">
+            <summary>
+            Amount of in-game days that have passed since the game started
+            </summary>
         </member>
         <member name="P:Vintagestory.API.Common.IGameCalendar.CalendarSpeedMul">
             <summary>
@@ -7242,6 +7307,11 @@
             Modifiers that can alter the behavior of the item or block, mostly for held interaction
             </summary>
         </member>
+        <member name="F:Vintagestory.API.Common.CollectibleObject.LightHsv">
+            <summary>
+            For light emitting collectibles: hue, saturation and brightness value
+            </summary>
+        </member>
         <member name="M:Vintagestory.API.Common.CollectibleObject.OnLoaded(Vintagestory.API.Common.ICoreAPI)">
             <summary>
             Server Side: Called one the collectible has been registered
@@ -7253,6 +7323,16 @@
             Called when the client/server is shutting down
             </summary>
             <param name="api"></param>
+        </member>
+        <member name="M:Vintagestory.API.Common.CollectibleObject.GetLightHsv(Vintagestory.API.Common.IBlockAccessor,Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.ItemStack)">
+            <summary>
+            Should return the light HSV values. 
+            Warning: This method is likely to get called in a background thread. Please make sure your code in here is thread safe.
+            </summary>
+            <param name="blockAccessor"></param>
+            <param name="pos">May be null</param>
+            <param name="stack">Set if its an itemstack for which the engine wants to check the light level</param>
+            <returns></returns>
         </member>
         <member name="M:Vintagestory.API.Common.CollectibleObject.GetNutritionProperties(Vintagestory.API.Common.IWorldAccessor,Vintagestory.API.Common.ItemStack,Vintagestory.API.Common.Entities.Entity)">
             <summary>
@@ -7907,7 +7987,7 @@
             <summary>
             Returns true if this blocks matterstate is liquid.  (Liquid blocks should also implement IBlockFlowing)
             <br/>
-            IMPORTANT: Calling code should have looked up the block using IBlockAccessor.GetLiquidBlock() not IBlockAccessor.GetBlock() !!!
+            IMPORTANT: Calling code should have looked up the block using IBlockAccessor.GetBlock(pos, EnumBlockLayersAccess.LiquidOnly) !!!
             </summary>
             <returns></returns>
         </member>
@@ -8198,7 +8278,7 @@
             <param name="handling"></param>
             <returns></returns>
         </member>
-        <member name="M:Vintagestory.API.Common.BlockBehavior.ShouldReceiveClientGameTicks(Vintagestory.API.Common.IWorldAccessor,Vintagestory.API.Common.IPlayer,Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.EnumHandling@)">
+        <member name="M:Vintagestory.API.Common.BlockBehavior.ShouldReceiveClientParticleTicks(Vintagestory.API.Common.IWorldAccessor,Vintagestory.API.Common.IPlayer,Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.EnumHandling@)">
             <summary>
             Everytime the player moves by 8 blocks (or rather leaves the current 8-grid), a scan of all blocks 32x32x32 blocks around the player is initiated
             and this method is called. If the method returns true, the block is registered to a client side game ticking for spawning particles and such.
@@ -8806,14 +8886,14 @@
             </summary>
             <param name="particleInstance">The parent IParticleInstance from which this secondary particle is being spawned</param>
         </member>
-        <member name="F:Vintagestory.API.Common.BlockUpdate.NewBlockId">
+        <member name="F:Vintagestory.API.Common.BlockUpdate.NewSolidId">
             <summary>
-            If this value is negative, it indicates no change to the block (neither air block nor anything else) because only the liquid is being updated
+            If this value is negative, it indicates no change to the block (neither air block nor anything else) because only the fluid is being updated
             </summary>
         </member>
-        <member name="F:Vintagestory.API.Common.BlockUpdate.NewLiquidId">
+        <member name="F:Vintagestory.API.Common.BlockUpdate.NewFluidId">
             <summary>
-            If this value is negative, it indicates no change to the liquids layer block (neither air block nor anything else) because only the solid block is being updated
+            If this value is negative, it indicates no change to the fluids layer block (neither air block nor anything else) because only the solid block is being updated
             </summary>
         </member>
         <member name="T:Vintagestory.API.Common.ClimateCondition">
@@ -8973,28 +9053,57 @@
             <summary>
             Get the block id of the block at the given world coordinate
             </summary>
-            <param name = "x">x coordinate</param>
-            <param name = "y">y coordinate</param>
-            <param name = "z">z coordinate</param>
-            <returns>ID of the block at the given position. Returns 0 for Airblocks or invalid/unloaded coordinates</returns>
+            <param name="posX"></param>
+            <param name="posY"></param>
+            <param name="posZ"></param>
+            <returns></returns>
         </member>
         <member name="M:Vintagestory.API.Common.IBlockAccessor.GetBlockId(Vintagestory.API.MathTools.BlockPos)">
             <summary>
             Get the block id of the block at the given world coordinate
             </summary>
             <param name="pos"></param>
-            <returns>ID of the block at the given position. Returns 0 for Airblocks or invalid/unloaded coordinates</returns>
+            <returns></returns>
         </member>
         <member name="M:Vintagestory.API.Common.IBlockAccessor.GetBlock(System.Int32,System.Int32,System.Int32)">
             <summary>
+            Get the block type of the block at the given world coordinate. Will never return null. For air blocks or invalid coordinates you'll get a block instance with block code "air" and id 0
+            Same as <see cref="!:GetBlock(int, int, int, BlockLayersAccess.Default)"/>
+            </summary>
+            <param name="posX"></param>
+            <param name="posY"></param>
+            <param name="posZ"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetBlock(Vintagestory.API.MathTools.BlockPos)">
+            <summary>
+            Get the block type of the block at the given world coordinate. Will never return null. For air blocks or invalid coordinates you'll get a block instance with block code "air" and id 0
+            Same as <see cref="!:GetBlock(BlockPos, BlockLayersAccess.Default)"/>
+            </summary>
+            <param name="pos"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetBlock(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
             Get the block type of the block at the given world coordinate. Will never return null. For airblocks or invalid coordinates you'll get a block instance with block code "air" and id 0
+            <br/>Reads the block from the specified layer(s), see <see cref="T:Vintagestory.API.Common.BlockLayersAccess"/> documentation for details.
             </summary>
             <param name = "x">x coordinate</param>
             <param name = "y">y coordinate</param>
             <param name = "z">z coordinate</param>
+            <param name = "layer">blocks layer e.g. solid, fluid etc.</param>
             <returns>ID of the block at the given position</returns>
         </member>
-        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetBlockOrNull(System.Int32,System.Int32,System.Int32)">
+        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetBlock(Vintagestory.API.MathTools.BlockPos,System.Int32)">
+            <summary>
+            Get block type at given world coordinate. Will never return null. For airblocks or invalid coordinates you'll get a block instance with block code "air" and id 0
+            <br/>Reads the block from the specified layer(s), see BlockLayersAccess documentation for details.
+            </summary>
+            <param name="pos"></param>
+            <param name = "layer">blocks layer e.g. solid, fluid etc.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetBlockOrNull(System.Int32,System.Int32,System.Int32,System.Int32)">
             <summary>
             Get the block type of the block at the given world coordinate. For invalid or unloaded coordinates this method returns null.
             </summary>
@@ -9003,34 +9112,20 @@
             <param name = "z">z coordinate</param>
             <returns>ID of the block at the given position</returns>
         </member>
-        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetBlock(Vintagestory.API.MathTools.BlockPos)">
+        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetMostSolidBlock(System.Int32,System.Int32,System.Int32)">
             <summary>
-            Get block type at given world coordinate. Will never return null. For airblocks or invalid coordinates you'll get a block instance with block code "air" and id 0
-            </summary>
-            <param name="pos"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetLiquidBlock(Vintagestory.API.MathTools.BlockPos)">
-            <summary>
-            Get block type from the liquids layer at given world coordinate. Will never return null. For airblocks or invalid coordinates you'll get a block instance with block code "air" and id 0
-            </summary>
-            <param name="pos"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetLiquidBlock(System.Int32,System.Int32,System.Int32)">
-            <summary>
-            Get block type from the liquids layer (which can include also Lake Ice - so not necessarily a liquid!!!) at given world coordinate. Will never return null. For no liquid present you'll get a block instance with block code "air" and id 0
-            </summary>
-            <param name="pos"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetSolidBlock(System.Int32,System.Int32,System.Int32)">
-            <summary>
-            Gets the block type from the solids layer, except when the liquids layer holds ice in which case it returns ice in priority
+            Same as <see cref="!:GetBlock(int, int, int, BlockLayersAccess.MostSolid)"/>
             </summary>
             <param name="x"></param>
             <param name="y"></param>
             <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Vintagestory.API.Common.IBlockAccessor.GetMostSolidBlock(Vintagestory.API.MathTools.BlockPos)">
+            <summary>
+            Same as <see cref="!:GetBlock(BlockPos, BlockLayersAccess.MostSolid)"/>
+            </summary>
+            <param name="pos"></param>
             <returns></returns>
         </member>
         <member name="M:Vintagestory.API.Common.IBlockAccessor.WalkBlocks(Vintagestory.API.MathTools.BlockPos,Vintagestory.API.MathTools.BlockPos,System.Action{Vintagestory.API.Common.Block,System.Int32,System.Int32,System.Int32},System.Boolean)">
@@ -9052,9 +9147,9 @@
             <param name="onBlock">Return false to stop the search</param>
             <param name="onChunkMissing">Called when a missing/unloaded chunk was encountered</param>
         </member>
-        <member name="M:Vintagestory.API.Common.IBlockAccessor.SearchLiquidBlocks(Vintagestory.API.MathTools.BlockPos,Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.ActionConsumable{Vintagestory.API.Common.Block,Vintagestory.API.MathTools.BlockPos},System.Action{System.Int32,System.Int32,System.Int32})">
+        <member name="M:Vintagestory.API.Common.IBlockAccessor.SearchFluidBlocks(Vintagestory.API.MathTools.BlockPos,Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.ActionConsumable{Vintagestory.API.Common.Block,Vintagestory.API.MathTools.BlockPos},System.Action{System.Int32,System.Int32,System.Int32})">
             <summary>
-            A method to search for a given liquid block in an area
+            A method to search for a given fluid block in an area
             </summary>
             <param name="minPos"></param>
             <param name="maxPos"></param>
@@ -9079,20 +9174,22 @@
         <member name="M:Vintagestory.API.Common.IBlockAccessor.SetBlock(System.Int32,Vintagestory.API.MathTools.BlockPos)">
             <summary>
             Set a block at the given position. Use blockid 0 to clear that position from any blocks. Marks the chunk dirty so that it gets saved to disk during shutdown or next autosave.
+            If called with a fluid block, the fluid will automatically get set in the fluid layer, and the solid layer will be emptied.
             </summary>
             <param name="blockId"></param>
             <param name="pos"></param>
         </member>
-        <member name="M:Vintagestory.API.Common.IBlockAccessor.SetLiquidBlock(System.Int32,Vintagestory.API.MathTools.BlockPos)">
+        <member name="M:Vintagestory.API.Common.IBlockAccessor.SetBlock(System.Int32,Vintagestory.API.MathTools.BlockPos,System.Int32)">
             <summary>
-            Set a liquid block at the given position. Use id 0 to clear all liquids from the position. Marks the chunk dirty so that it gets saved to disk during shutdown or next autosave.
+            Sets a block to given layer. Can only use "BlockLayersAccess.Solid" or "BlockLayersAccess.Liquid". Use id 0 to clear a block from given position. Marks the chunk dirty so that it gets saved to disk during shutdown or next autosave.
             </summary>
-            <param name="liquidBlockId"></param>
+            <param name="fluidBlockId"></param>
             <param name="pos"></param>
         </member>
         <member name="M:Vintagestory.API.Common.IBlockAccessor.SetBlock(System.Int32,Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.ItemStack)">
             <summary>
             Set a block at the given position. Use blockid 0 to clear that position from any blocks. Marks the chunk dirty so that it gets saved to disk during shutdown or next autosave.
+            If called with a fluid block, the fluid will automatically get set in the fluid layer, and the solid layer will be emptied.
             </summary>
             <param name="blockId"></param>
             <param name="pos"></param>
@@ -9222,7 +9319,7 @@
         </member>
         <member name="M:Vintagestory.API.Common.IBlockAccessor.MarkBlockDirty(Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.IPlayer)">
             <summary>
-            Server side: Triggers a OnNeighbourBlockChange on that position and sends that block to the client (via bulk packet), through that packet the client will do a SetBlock on that position (which triggers a redraw if oldblockid != newblockid).<br/>
+            Server side: Sends that block to the client (via bulk packet).  Through that packet the client will do a SetBlock on that position (which triggers a redraw if oldblockid != newblockid).<br/>
             Client side: Triggers a block changed event and redraws the chunk
             </summary>
             <param name="pos"></param>
@@ -9427,7 +9524,7 @@
         </member>
         <member name="M:Vintagestory.API.Common.IBlockAccessor.IsSideSolid(System.Int32,System.Int32,System.Int32,Vintagestory.API.MathTools.BlockFacing)">
             <summary>
-            Tests whether a side at the specified position is solid - testing both liquids layer (which could be ice) and solid blocks layer
+            Tests whether a side at the specified position is solid - testing both fluids layer (which could be ice) and solid blocks layer
             </summary>
             <param name="x"></param>
             <param name="v"></param>
@@ -9746,6 +9843,13 @@
             Client side: No effect
             </summary>
         </member>
+        <member name="P:Vintagestory.API.Common.IChunkBlocks.Item(System.Int32)">
+            <summary>
+            Retrieves the first solid block, if that one is empty, retrieves the first fluid block
+            </summary>
+            <param name="index3d"></param>
+            <returns></returns>
+        </member>
         <member name="M:Vintagestory.API.Common.IChunkBlocks.ClearBlocksAndPrepare">
             <summary>
             Same as ClearBlocks but initialises the chunkdata palette, so that SetBlockUnsafe can be used  (useful in worldgen)
@@ -9758,9 +9862,9 @@
             <param name="index3d"></param>
             <param name="value"></param>
         </member>
-        <member name="M:Vintagestory.API.Common.IChunkBlocks.SetLiquid(System.Int32,System.Int32)">
+        <member name="M:Vintagestory.API.Common.IChunkBlocks.SetFluid(System.Int32,System.Int32)">
             <summary>
-            Used to place blocks into the liquid layer instead of the solid blocks layer; calling code must do this
+            Used to place blocks into the fluid layer instead of the solid blocks layer; calling code must do this
             </summary>
             <param name="index3d"></param>
             <param name="value"></param>
@@ -9782,9 +9886,14 @@
             Holds a reference to the current map data of this chunk column
             </summary>
         </member>
-        <member name="P:Vintagestory.API.Common.IWorldChunk.Blocks">
+        <member name="P:Vintagestory.API.Common.IWorldChunk.Data">
             <summary>
             Holds all the blockids for each coordinate, access via index: (y * chunksize + z) * chunksize + x
+            </summary>
+        </member>
+        <member name="P:Vintagestory.API.Common.IWorldChunk.Blocks">
+            <summary>
+            Use <see cref="P:Vintagestory.API.Common.IWorldChunk.Data"/> instead
             </summary>
         </member>
         <member name="P:Vintagestory.API.Common.IWorldChunk.Lighting">
@@ -9794,7 +9903,7 @@
         </member>
         <member name="P:Vintagestory.API.Common.IWorldChunk.MaybeBlocks">
             <summary>
-            Faster (non-blocking) access to blocks at the cost of sometimes returning 0 instead of the real block. Use <see cref="P:Vintagestory.API.Common.IWorldChunk.Blocks"/> if you need reliable block access. Also should only be used for reading. Currently used for the particle system.
+            Faster (non-blocking) access to blocks at the cost of sometimes returning 0 instead of the real block. Use <see cref="P:Vintagestory.API.Common.IWorldChunk.Data"/> if you need reliable block access. Also should only be used for reading. Currently used for the particle system.
             </summary>
         </member>
         <member name="P:Vintagestory.API.Common.IWorldChunk.Entities">
@@ -9822,7 +9931,7 @@
             Like Unpack(), except it must be used readonly: the calling code promises not to write any changes to this chunk's blocks or lighting
             </summary>
         </member>
-        <member name="M:Vintagestory.API.Common.IWorldChunk.Unpack_AndReadBlock(System.Int32)">
+        <member name="M:Vintagestory.API.Common.IWorldChunk.UnpackAndReadBlock(System.Int32,System.Int32)">
             <summary>
             Like Unpack_ReadOnly(), except it actually reads and returns the block ID at index<br/>
             (Returns 0 if the chunk was disposed)
@@ -9911,14 +10020,6 @@
             <param name="key"></param>
             <returns></returns>
         </member>
-        <member name="M:Vintagestory.API.Common.IWorldChunk.GetLocalLiquidOrBlockAtBlockPos(Vintagestory.API.Common.IWorldAccessor,Vintagestory.API.MathTools.BlockPos)">
-            <summary>
-            Retrieve a block from this chunk with priority given to the ice/water layer, performs Unpack() and a modulo operation on the position arg to get a local position in the 0..chunksize range (its your job to pick out the right chunk before calling this method)
-            </summary>
-            <param name="world"></param>
-            <param name="position"></param>
-            <returns></returns>
-        </member>
         <member name="M:Vintagestory.API.Common.IWorldChunk.GetLocalBlockAtBlockPos(Vintagestory.API.Common.IWorldAccessor,Vintagestory.API.MathTools.BlockPos)">
             <summary>
             Retrieve a block from this chunk ignoring ice/water layer, performs Unpack() and a modulo operation on the position arg to get a local position in the 0..chunksize range (it's your job to pick out the right chunk before calling this method)
@@ -10001,7 +10102,7 @@
         </member>
         <member name="M:Vintagestory.API.Common.IWorldChunk.GetLightAbsorptionAt(System.Int32,Vintagestory.API.MathTools.BlockPos,System.Collections.Generic.IList{Vintagestory.API.Common.Block})">
             <summary>
-            Returns the higher light absorption between solids and liquids block layers
+            Returns the higher light absorption between solids and fluids block layers
             </summary>
             <param name="index3d"></param>
             <param name="blockPos"></param>
@@ -11893,14 +11994,14 @@
             Returns EnumItemClass.Block
             </summary>
         </member>
-        <member name="P:Vintagestory.API.Common.Block.ForLiquidsLayer">
+        <member name="P:Vintagestory.API.Common.Block.ForFluidsLayer">
             <summary>
-            Return true if this block should be stored in the liquids layer in chunks instead of the solid blocks layer (e.g. water, flowing water, lake ice)
+            Return true if this block should be stored in the fluids layer in chunks instead of the solid blocks layer (e.g. water, flowing water, lake ice)
             </summary>
         </member>
         <member name="P:Vintagestory.API.Common.Block.RemapToLiquidsLayer">
             <summary>
-            Return non-null if this block should have water (or ice) placed in its position in the liquids layer when updating from 1.16 to 1.17
+            Return non-null if this block should have water (or ice) placed in its position in the fluids layer when updating from 1.16 to 1.17
             </summary>
         </member>
         <member name="F:Vintagestory.API.Common.Block.DefaultCollisionBox">
@@ -11961,11 +12062,6 @@
         <member name="F:Vintagestory.API.Common.Block.Frostable">
             <summary>
             A bit uploaded to the shader to add a frost overlay below freezing temperature
-            </summary>
-        </member>
-        <member name="F:Vintagestory.API.Common.Block.LightHsv">
-            <summary>
-            For light emitting blocks: hue, saturation and brightness value
             </summary>
         </member>
         <member name="F:Vintagestory.API.Common.Block.LightAbsorption">
@@ -12213,6 +12309,14 @@
             Sets the whole SideOpaque array to true 
             </summary>
         </member>
+        <member name="M:Vintagestory.API.Common.Block.DisplacesLiquids(Vintagestory.API.Common.IBlockAccessor,Vintagestory.API.MathTools.BlockPos)">
+            <summary>
+            Called for example when the player places a block inside a liquid block. Needs to return true if the liquid should get removed.
+            </summary>
+            <param name="blockAccess"></param>
+            <param name="pos"></param>
+            <returns></returns>
+        </member>
         <member name="M:Vintagestory.API.Common.Block.ShouldMergeFace(System.Int32,Vintagestory.API.Common.Block,System.Int32)">
             <summary>
             This method gets called when facecull mode is set to 'Callback'. Curently used for custom behaviors when merging ice
@@ -12253,16 +12357,6 @@
             </summary>
             <param name="blockAccessor"></param>
             <param name="pos"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Vintagestory.API.Common.Block.GetLightHsv(Vintagestory.API.Common.IBlockAccessor,Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.ItemStack)">
-            <summary>
-            Should return the light HSV values. 
-            Warning: This method is likely to get called in a background thread. Please make sure your code in here is thread safe.
-            </summary>
-            <param name="blockAccessor"></param>
-            <param name="pos">May be null</param>
-            <param name="stack">Set if its an itemstack for which the engine wants to check the light level</param>
             <returns></returns>
         </member>
         <member name="M:Vintagestory.API.Common.Block.GetBlockMaterial(Vintagestory.API.Common.IBlockAccessor,Vintagestory.API.MathTools.BlockPos,Vintagestory.API.Common.ItemStack)">
@@ -12842,6 +12936,11 @@
             <param name="withInheritance"></param>
             <returns></returns>
         </member>
+        <member name="M:Vintagestory.API.Common.Block.LiquidBarrierHeightOnSide(Vintagestory.API.MathTools.BlockFacing,Vintagestory.API.MathTools.BlockPos)">
+            <summary>
+            Return a decimal between 0.0 and 1.0 indicating - if this block is solid enough to block liquid flow on that side - how high the barrier is
+            </summary>
+        </member>
         <member name="F:Vintagestory.API.Common.EnumMatterState.Gas">
             <summary>
             The state of being so thin that molecules don't often touch
@@ -13148,7 +13247,7 @@
             </summary>
             <param name="resolver"></param>
         </member>
-        <member name="M:Vintagestory.API.Common.CraftingRecipeIngredient.SatisfiesAsIngredient(Vintagestory.API.Common.ItemStack)">
+        <member name="M:Vintagestory.API.Common.CraftingRecipeIngredient.SatisfiesAsIngredient(Vintagestory.API.Common.ItemStack,System.Boolean)">
             <summary>
             Checks whether or not the input satisfies as an ingredient for the recipe.
             </summary>
@@ -13444,10 +13543,8 @@
         <member name="M:Vintagestory.API.Common.ModSystem.AssetsLoaded(Vintagestory.API.Common.ICoreAPI)">
             <summary>
             Called on the server or the client; implementing code may need to check which side it is.
-            <br/>On a server, called only after all mods have called Start(), and after asset JSONs have been read from disk and patched, but before runphase ModsAndConfigReady.
-            <br/>Asset files are now available to load using api.Assets.TryGet() calls or similar.  It is not guaranteed that the actual in-game assets (including blocks and items) are yet registered!
-            <br/>If called from a modsystem, what has been registered at this stage depends on the ExecuteOrder().  After 0.2, blocks and items have been registered.  After 0.6, recipes have been registered.
-            <br/>If implementing this, and if your code requires that blocks, items and entities have been registered first, make sure your ModSystem has set an appropriate ExecuteOrder()!!
+            <br/>On a server, called only after all mods have received Start(), and after asset JSONs have been read from disk and patched, but before runphase ModsAndConfigReady.
+            <br/>Asset files are now available to load using api.Assets.TryGet() calls or similar. If your execute order is below 0.2, blocks and items are not yet registered at this point, if below 0.6 recipes are not yet registered.
             </summary>
             <param name="api"></param>
         </member>
@@ -13455,7 +13552,7 @@
             <summary>
             Full start to the mod on the client side.
             <br/>Note, in multiplayer games, the server assets (blocks, items, entities, recipes) have not yet been received and so no blocks etc. are yet registered
-            <br/>For code that must run only after we have blocks,items,entities and recipes all registered and loaded, add your method to event BlockTexturesLoaded
+            <br/>For code that must run only after we have blocks, items, entities and recipes all registered and loaded, add your method to event BlockTexturesLoaded
             </summary>
             <param name="api"></param>
         </member>
@@ -14809,75 +14906,44 @@
             Called by the texture atlas manager when building up the block atlas. Has to add all of the blocks textures
             </summary>
         </member>
-        <member name="T:Vintagestory.API.Client.GuiElementColorListPicker">
+        <member name="T:Vintagestory.API.Client.GuiElementIconListPicker">
             <summary>
             Creates a toggle button for the GUI.
             </summary>
         </member>
-        <member name="F:Vintagestory.API.Client.GuiElementColorListPicker.On">
+        <member name="M:Vintagestory.API.Client.GuiComposerHelpers.GetIconListPicker(Vintagestory.API.Client.GuiComposer,System.String)">
             <summary>
-            Is this button on?
+            Gets the toggle button by name in the GUIComposer.
             </summary>
+            <param name="key">The name of the button.</param>
+            <returns>A button.</returns>
         </member>
-        <member name="P:Vintagestory.API.Client.GuiElementColorListPicker.Focusable">
+        <member name="M:Vintagestory.API.Client.GuiComposerHelpers.IconListPickerSetValue(Vintagestory.API.Client.GuiComposer,System.String,System.Int32)">
             <summary>
-            Is this element capable of being in the focus?
+            Toggles the given button.
             </summary>
+            <param name="key">The name of the button that was set.</param>
+            <param name="selectedIndex">the index of the button.</param>
         </member>
-        <member name="M:Vintagestory.API.Client.GuiElementColorListPicker.#ctor(Vintagestory.API.Client.ICoreClientAPI,System.Int32,System.Action{System.Boolean},Vintagestory.API.Client.ElementBounds)">
+        <member name="M:Vintagestory.API.Client.GuiComposerHelpers.AddIconListPicker(Vintagestory.API.Client.GuiComposer,System.String[],System.Action{System.Int32},Vintagestory.API.Client.ElementBounds,System.Int32,System.String)">
             <summary>
-            Constructor for the button
+            Adds multiple buttons with Text.
             </summary>
-            <param name="capi">The core client API.</param>
-            <param name="color"></param>
-            <param name="OnToggled">The action that happens when the button is toggled.</param>
-            <param name="bounds">The bounding box of the button.</param>
+            <param name="texts">The texts on all the buttons.</param>
+            <param name="font">The font for the buttons</param>
+            <param name="onToggle">The event fired when the button is pressed.</param>
+            <param name="bounds">The bounds of the buttons.</param>
+            <param name="key">The key given to the bundle of buttons.</param>
         </member>
-        <member name="M:Vintagestory.API.Client.GuiElementColorListPicker.ComposeElements(Cairo.Context,Cairo.ImageSurface)">
+        <member name="M:Vintagestory.API.Client.GuiComposerHelpers.AddElementListPicker``1(Vintagestory.API.Client.GuiComposer,System.Type,``0[],System.Action{System.Int32},Vintagestory.API.Client.ElementBounds,System.Int32,System.String)">
             <summary>
-            Composes the element in both the pressed, and released states.
+            Adds multiple buttons with Text.
             </summary>
-            <param name="ctx">The context of the element.</param>
-            <param name="surface">The surface of the element.</param>
-            <remarks>Neither the context, nor the surface is used in this function.</remarks>
-        </member>
-        <member name="M:Vintagestory.API.Client.GuiElementColorListPicker.RenderInteractiveElements(System.Single)">
-            <summary>
-            Renders the button.
-            </summary>
-            <param name="deltaTime">The time elapsed.</param>
-        </member>
-        <member name="M:Vintagestory.API.Client.GuiElementColorListPicker.OnMouseDownOnElement(Vintagestory.API.Client.ICoreClientAPI,Vintagestory.API.Client.MouseEvent)">
-            <summary>
-            Handles the mouse button press while the mouse is on this button.
-            </summary>
-            <param name="api">The client API</param>
-            <param name="args">The mouse event arguments.</param>
-        </member>
-        <member name="M:Vintagestory.API.Client.GuiElementColorListPicker.OnMouseUpOnElement(Vintagestory.API.Client.ICoreClientAPI,Vintagestory.API.Client.MouseEvent)">
-            <summary>
-            Handles the mouse button release while the mouse is on this button.
-            </summary>
-            <param name="api">The client API</param>
-            <param name="args">The mouse event arguments</param>
-        </member>
-        <member name="M:Vintagestory.API.Client.GuiElementColorListPicker.OnMouseUp(Vintagestory.API.Client.ICoreClientAPI,Vintagestory.API.Client.MouseEvent)">
-            <summary>
-            Handles the event fired when the mouse is released.
-            </summary>
-            <param name="api">The client API</param>
-            <param name="args">Mouse event arguments</param>
-        </member>
-        <member name="M:Vintagestory.API.Client.GuiElementColorListPicker.SetValue(System.Boolean)">
-            <summary>
-            Sets the value of the button.
-            </summary>
-            <param name="on">Am I on or off?</param>
-        </member>
-        <member name="M:Vintagestory.API.Client.GuiElementColorListPicker.Dispose">
-            <summary>
-            Disposes of the button.
-            </summary>
+            <param name="texts">The texts on all the buttons.</param>
+            <param name="font">The font for the buttons</param>
+            <param name="onToggle">The event fired when the button is pressed.</param>
+            <param name="bounds">The bounds of the buttons.</param>
+            <param name="key">The key given to the bundle of buttons.</param>
         </member>
         <member name="M:Vintagestory.API.Client.GuiComposerHelpers.GetColorListPicker(Vintagestory.API.Client.GuiComposer,System.String)">
             <summary>
@@ -15217,12 +15283,13 @@
             <param name="key">The internal name of the numeric input.</param>
             <returns>The named numeric input.</returns>
         </member>
-        <member name="M:Vintagestory.API.Client.GuiComposerHelpers.AddStatbar(Vintagestory.API.Client.GuiComposer,Vintagestory.API.Client.ElementBounds,System.Double[],System.String)">
+        <member name="M:Vintagestory.API.Client.GuiComposerHelpers.AddStatbar(Vintagestory.API.Client.GuiComposer,Vintagestory.API.Client.ElementBounds,System.Double[],System.Boolean,System.String)">
             <summary>
             Adds a stat bar to the current GUI with a minimum of 0 and a maximum of 100.
             </summary>
             <param name="bounds">The bounds of the stat bar.</param>
             <param name="color">The color of the stat bar.</param>
+            <param name="hideable">If true, the element can be fully hidden without recompose.</param>
             <param name="key">The internal name of the stat bar.</param>
         </member>
         <member name="M:Vintagestory.API.Client.GuiComposerHelpers.AddInvStatbar(Vintagestory.API.Client.GuiComposer,Vintagestory.API.Client.ElementBounds,System.Double[],System.String)">
@@ -15504,11 +15571,96 @@
             <param name="bounds">The bounds of the text container.</param>
             <param name="key">The name of the component.</param>
         </member>
+        <member name="M:Vintagestory.API.Client.GuiComposerHelpers.AddStaticTextAutoFontSize(Vintagestory.API.Client.GuiComposer,System.String,Vintagestory.API.Client.CairoFont,Vintagestory.API.Client.ElementBounds,System.String)">
+            <summary>
+            Adds a static text component to the GUI that automatically resizes as necessary.
+            </summary>
+            <param name="text">The text of the text component.</param>
+            <param name="font">The font of the text.</param>
+            <param name="orientation">The orientation of the text.</param>
+            <param name="bounds">The bounds of the text container.</param>
+            <param name="key">The name of the component.</param>
+        </member>
         <member name="M:Vintagestory.API.Client.GuiComposerHelpers.GetStaticText(Vintagestory.API.Client.GuiComposer,System.String)">
             <summary>
             Gets the static text component by name.
             </summary>
             <param name="key">The name of the component.</param>
+        </member>
+        <member name="T:Vintagestory.API.Client.GuiElementElementListPickerBase`1">
+            <summary>
+            Creates a toggle button for the GUI.
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Client.GuiElementElementListPickerBase`1.On">
+            <summary>
+            Is this button on?
+            </summary>
+        </member>
+        <member name="P:Vintagestory.API.Client.GuiElementElementListPickerBase`1.Focusable">
+            <summary>
+            Is this element capable of being in the focus?
+            </summary>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementElementListPickerBase`1.#ctor(Vintagestory.API.Client.ICoreClientAPI,`0,Vintagestory.API.Client.ElementBounds)">
+            <summary>
+            Constructor for the button
+            </summary>
+            <param name="capi">The core client API.</param>
+            <param name="color"></param>
+            <param name="OnToggled">The action that happens when the button is toggled.</param>
+            <param name="bounds">The bounding box of the button.</param>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementElementListPickerBase`1.ComposeElements(Cairo.Context,Cairo.ImageSurface)">
+            <summary>
+            Composes the element in both the pressed, and released states.
+            </summary>
+            <param name="ctx">The context of the element.</param>
+            <param name="surface">The surface of the element.</param>
+            <remarks>Neither the context, nor the surface is used in this function.</remarks>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementElementListPickerBase`1.RenderInteractiveElements(System.Single)">
+            <summary>
+            Renders the button.
+            </summary>
+            <param name="deltaTime">The time elapsed.</param>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementElementListPickerBase`1.OnMouseDownOnElement(Vintagestory.API.Client.ICoreClientAPI,Vintagestory.API.Client.MouseEvent)">
+            <summary>
+            Handles the mouse button press while the mouse is on this button.
+            </summary>
+            <param name="api">The client API</param>
+            <param name="args">The mouse event arguments.</param>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementElementListPickerBase`1.OnMouseUpOnElement(Vintagestory.API.Client.ICoreClientAPI,Vintagestory.API.Client.MouseEvent)">
+            <summary>
+            Handles the mouse button release while the mouse is on this button.
+            </summary>
+            <param name="api">The client API</param>
+            <param name="args">The mouse event arguments</param>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementElementListPickerBase`1.OnMouseUp(Vintagestory.API.Client.ICoreClientAPI,Vintagestory.API.Client.MouseEvent)">
+            <summary>
+            Handles the event fired when the mouse is released.
+            </summary>
+            <param name="api">The client API</param>
+            <param name="args">Mouse event arguments</param>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementElementListPickerBase`1.SetValue(System.Boolean)">
+            <summary>
+            Sets the value of the button.
+            </summary>
+            <param name="on">Am I on or off?</param>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementElementListPickerBase`1.Dispose">
+            <summary>
+            Disposes of the button.
+            </summary>
+        </member>
+        <member name="T:Vintagestory.API.Client.GuiElementColorListPicker">
+            <summary>
+            Creates a toggle button for the GUI.
+            </summary>
         </member>
         <member name="F:Vintagestory.API.Client.GuiElementContainer.Elements">
             <summary>
@@ -15905,7 +16057,7 @@
             <param name="color">The color of the font.</param>
             <param name="strokeColor">The color for the stroke of the font. (Default: Null)</param>
         </member>
-        <member name="M:Vintagestory.API.Client.CairoFont.AutoFontSize(System.String,Vintagestory.API.Client.ElementBounds)">
+        <member name="M:Vintagestory.API.Client.CairoFont.AutoFontSize(System.String,Vintagestory.API.Client.ElementBounds,System.Boolean)">
             <summary>
             Adjust font size so that it fits given bounds
             </summary>
@@ -16633,6 +16785,11 @@
         <member name="F:Vintagestory.API.Client.GuiStyle.HealthBarColor">
             <summary>
             The color of the health bar.
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Client.GuiStyle.OxygenBarColor">
+            <summary>
+            The color of the oxygen bar
             </summary>
         </member>
         <member name="F:Vintagestory.API.Client.GuiStyle.FoodBarColor">
@@ -17578,7 +17735,7 @@
             A stat bar to the GUI for keeping track of progress and numbers.
             </summary>
         </member>
-        <member name="M:Vintagestory.API.Client.GuiElementStatbar.#ctor(Vintagestory.API.Client.ICoreClientAPI,Vintagestory.API.Client.ElementBounds,System.Double[],System.Boolean)">
+        <member name="M:Vintagestory.API.Client.GuiElementStatbar.#ctor(Vintagestory.API.Client.ICoreClientAPI,Vintagestory.API.Client.ElementBounds,System.Double[],System.Boolean,System.Boolean)">
             <summary>
             Creates a new stat bar for the GUI.
             </summary>
@@ -17815,7 +17972,7 @@
             <param name="surface">The surface of the image.</param>
             <param name="withFont">The font for the element.</param>
         </member>
-        <member name="M:Vintagestory.API.Client.RichTextComponent.RenderInteractiveElements(System.Single,System.Double,System.Double)">
+        <member name="M:Vintagestory.API.Client.RichTextComponent.RenderInteractiveElements(System.Single,System.Double,System.Double,System.Double)">
             <summary>
             Renders the text component.
             </summary>
@@ -17864,7 +18021,7 @@
             <param name="surface">The surface of the image.</param>
             <param name="withFont">The font for the element.</param>
         </member>
-        <member name="M:Vintagestory.API.Client.RichTextComponentBase.RenderInteractiveElements(System.Single,System.Double,System.Double)">
+        <member name="M:Vintagestory.API.Client.RichTextComponentBase.RenderInteractiveElements(System.Single,System.Double,System.Double,System.Double)">
             <summary>
             Renders the text component.
             </summary>
@@ -18099,7 +18256,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Vintagestory.API.Client.GuiElementItemstackInfo.SetSourceSlot(Vintagestory.API.Common.ItemSlot)">
+        <member name="M:Vintagestory.API.Client.GuiElementItemstackInfo.SetSourceSlot(Vintagestory.API.Common.ItemSlot,System.Boolean)">
             <summary>
             Sets the source slot for stacks.
             </summary>
@@ -18326,6 +18483,17 @@
             <param name="bounds">The bounds of the element.</param>
             <param name="font">The font of the text.</param>
         </member>
+        <member name="M:Vintagestory.API.Client.GuiElementStaticText.AutoBoxSize(System.Boolean)">
+            <summary>
+            Resize element bounds so that the text fits in one line
+            </summary>
+            <param name="onlyGrow"></param>
+        </member>
+        <member name="M:Vintagestory.API.Client.GuiElementStaticText.AutoFontSize(System.Boolean)">
+            <summary>
+            Resize the font so that the text fits in one line
+            </summary>
+        </member>
         <member name="F:Vintagestory.API.Client.GuiElementTextBase.textPathMode">
             <summary>
             Whether or not the text path mode is active.
@@ -18412,6 +18580,13 @@
             <summary>
             A unique number assigned to each element
             </summary>
+        </member>
+        <member name="P:Vintagestory.API.Client.GuiComposer.Item(System.String)">
+            <summary>
+            Retrieve gui element by key. Returns null if not found.
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
         </member>
         <member name="F:Vintagestory.API.Client.GuiComposer.Tabbable">
             <summary>
@@ -20257,14 +20432,13 @@
             <param name="texSource"></param>
             <param name="rotation"></param>
         </member>
-        <member name="M:Vintagestory.API.Client.ITesselatorAPI.TesselateShape(Vintagestory.API.Client.TesselationMetaData,Vintagestory.API.Common.Shape,Vintagestory.API.Client.MeshData@,Vintagestory.API.MathTools.Vec3f)">
+        <member name="M:Vintagestory.API.Client.ITesselatorAPI.TesselateShape(Vintagestory.API.Client.TesselationMetaData,Vintagestory.API.Common.Shape,Vintagestory.API.Client.MeshData@)">
             <summary>
             Turns a shape into a mesh data object that you can feed into the chunk tesselator or upload to the graphics card for rendering. Can be used to supply a custom texture source. Will add a customints array to the meshdata that holds each elements JointId for all its vertices (you will have to manually set the jointid for each element though)
             </summary>
             <param name="meta"></param>
             <param name="shapeBase"></param>
             <param name="modeldata"></param>
-            <param name="rotation"></param>
         </member>
         <member name="M:Vintagestory.API.Client.ITesselatorAPI.VoxelizeTexture(Vintagestory.API.Client.CompositeTexture,Vintagestory.API.MathTools.Size2i,Vintagestory.API.Client.TextureAtlasPosition)">
             <summary>
@@ -23691,9 +23865,17 @@
             <param name="defaultValue"></param>
             <returns></returns>
         </member>
+        <member name="M:Vintagestory.API.Datastructures.TreeAttribute.GetAsInt(System.String,System.Int32)">
+            <summary>
+            Same as (int)GetDecimal(key, defValue);
+            </summary>
+            <param name="key"></param>
+            <param name="defaultValue"></param>
+            <returns></returns>
+        </member>
         <member name="M:Vintagestory.API.Datastructures.TreeAttribute.GetDecimal(System.String,System.Double)">
             <summary>
-            Retrieves an int, float, long or double value. Whatever attribute is found for given key. If its a string its converted to double
+            Retrieves an int, float, long or double value. Whatever attribute is found for given key, in aformentioned order. If its a string its converted to double
             </summary>
             <param name="key"></param>
             <param name="defaultValue"></param>
@@ -23924,6 +24106,14 @@
         <member name="M:Vintagestory.API.Datastructures.ITreeAttribute.GetInt(System.String,System.Int32)">
             <summary>
             Retrieves an int or default value if key is not found
+            </summary>
+            <param name="key"></param>
+            <param name="defaultValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Vintagestory.API.Datastructures.ITreeAttribute.GetAsInt(System.String,System.Int32)">
+            <summary>
+            Same as (int)<see cref="M:Vintagestory.API.Datastructures.ITreeAttribute.GetDecimal(System.String,System.Double)"/>
             </summary>
             <param name="key"></param>
             <param name="defaultValue"></param>
@@ -24369,15 +24559,20 @@
                  Used to compile the regexes, to save time on the first 'actual' wildcard search - saves about 300ms
             </summary>
         </member>
+        <member name="M:Vintagestory.API.Config.ITranslationService.Invalidate">
+            <summary>
+            Sets the loaded flag to false, so that the next lookup causes it to reload all translation entries
+            </summary>
+        </member>
         <member name="T:Vintagestory.API.Config.TranslationService">
             <summary>
             A service, which provides access to translated strings, based on key/value pairs read from JSON files.
             </summary>
             <seealso cref="T:Vintagestory.API.Config.ITranslationService" />
         </member>
-        <member name="M:Vintagestory.API.Config.TranslationService.#ctor(System.String,Vintagestory.API.Common.ILogger,Vintagestory.API.Common.IAssetManager)">
+        <member name="M:Vintagestory.API.Config.TranslationService.#ctor(System.String,Vintagestory.API.Common.ILogger,Vintagestory.API.Common.IAssetManager,Vintagestory.API.Client.EnumLinebreakBehavior)">
             <summary>
-                Initialises a new instance of the <see cref="T:Vintagestory.API.Config.TranslationService" /> class.
+            Initialises a new instance of the <see cref="T:Vintagestory.API.Config.TranslationService" /> class.
             </summary>
             <param name="languageCode">The language code that this translation service caters for.</param>
             <param name="logger">The <see cref="T:Vintagestory.API.Common.ILogger" /> instance used within the sided API.</param>
@@ -24385,24 +24580,29 @@
         </member>
         <member name="P:Vintagestory.API.Config.TranslationService.LanguageCode">
             <summary>
-                Gets the language code that this translation service caters for.
+            Gets the language code that this translation service caters for.
             </summary>
             <value>A string, that contains the language code that this translation service caters for.</value>
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.Load(System.Boolean)">
             <summary>
-                Loads translation key/value pairs from all relevant JSON files within the Asset Manager.
+            Loads translation key/value pairs from all relevant JSON files within the Asset Manager.
             </summary>
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.PreLoad(System.String,System.Boolean)">
             <summary>
-                Loads only the vanilla JSON files, without dealing with mods, or resource-packs.
+            Loads only the vanilla JSON files, without dealing with mods, or resource-packs.
             </summary>
             <param name="assetsPath">The root assets path to load the vanilla files from.</param>
         </member>
+        <member name="M:Vintagestory.API.Config.TranslationService.Invalidate">
+            <summary>
+            Sets the loaded flag to false, so that the next lookup causes it to reload all translation entries
+            </summary>
+        </member>
         <member name="M:Vintagestory.API.Config.TranslationService.GetIfExists(System.String,System.Object[])">
             <summary>
-                Gets a translation for a given key, if any matching wildcarded keys are found within the cache.
+            Gets a translation for a given key, if any matching wildcarded keys are found within the cache.
             </summary>
             <param name="key">The key.</param>
             <param name="args">The arguments to interpolate into the resulting string.</param>
@@ -24413,7 +24613,7 @@
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.Get(System.String,System.Object[])">
             <summary>
-                Gets a translation for a given key.
+            Gets a translation for a given key.
             </summary>
             <param name="key">The key.</param>
             <param name="args">The arguments to interpolate into the resulting string.</param>
@@ -24424,13 +24624,13 @@
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.GetAllEntries">
             <summary>
-                Retrieves a list of all translation entries within the cache.
+            Retrieves a list of all translation entries within the cache.
             </summary>
             <returns>A dictionary of localisation entries.</returns>
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.GetUnformatted(System.String)">
             <summary>
-                Gets the raw, unformatted translated value for the key provided.
+            Gets the raw, unformatted translated value for the key provided.
             </summary>
             <param name="key">The key.</param>
             <returns>
@@ -24440,18 +24640,18 @@
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.GetMatching(System.String,System.Object[])">
             <summary>
-                Gets a translation for a given key, if any matching wildcarded keys are found within the cache.
+            Gets a translation for a given key, if any matching wildcarded keys are found within the cache.
             </summary>
             <param name="key">The key.</param>
             <param name="args">The arguments to interpolate into the resulting string.</param>
             <returns>
-                Returns the key as a default value, if no results are found; otherwise returns the pre-formatted, translated
-                value.
+            Returns the key as a default value, if no results are found; otherwise returns the pre-formatted, translated
+            value.
             </returns>
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.HasTranslation(System.String,System.Boolean)">
             <summary>
-                Determines whether the specified key has a translation.
+            Determines whether the specified key has a translation.
             </summary>
             <param name="key">The key.</param>
             <param name="findWildcarded">if set to <c>true</c>, the scan will include any wildcarded values.</param>
@@ -24459,19 +24659,18 @@
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.UseAssetManager(Vintagestory.API.Common.IAssetManager)">
             <summary>
-                Specifies an asset manager to use, when the service has been lazy-loaded.
+            Specifies an asset manager to use, when the service has been lazy-loaded.
             </summary>
             <param name="assetManager">The <see cref="T:Vintagestory.API.Common.IAssetManager" /> instance used within the sided API.</param>
         </member>
         <member name="M:Vintagestory.API.Config.TranslationService.GetMatchingIfExists(System.String,System.Object[])">
             <summary>
-                Gets a translation for a given key, if any matching wildcarded keys are found within the cache.
+            Gets a translation for a given key, if any matching wildcarded keys are found within the cache.
             </summary>
             <param name="key">The key.</param>
             <param name="args">The arguments to interpolate into the resulting string.</param>
             <returns>
-                Returns <c>null</c> as a default value, if no results are found; otherwise returns the pre-formatted,
-                translated value.
+            Returns <c>null</c> as a default value, if no results are found; otherwise returns the pre-formatted, translated value.
             </returns>
         </member>
         <member name="T:Vintagestory.API.Config.Lang">
@@ -24490,11 +24689,11 @@
         </member>
         <member name="M:Vintagestory.API.Config.Lang.Load(Vintagestory.API.Common.ILogger,Vintagestory.API.Common.IAssetManager,System.String)">
             <summary>
-            Loads all languages.
+            Loads all translations
             </summary>
             <param name="logger">The <see cref="T:Vintagestory.API.Common.ILogger" /> instance used within the sided API.</param>
             <param name="assetManager">The <see cref="T:Vintagestory.API.Common.IAssetManager" /> instance used within the sided API.</param>
-            <param name="defaultLanguage">The language code to set as the default/fallback language for the game.</param>
+            <param name="language">The desired language</param>
         </member>
         <member name="M:Vintagestory.API.Config.Lang.ChangeLanguage(System.String)">
             <summary>
@@ -24502,7 +24701,7 @@
             </summary>
             <param name="languageCode">The language code to set as the language for the game.</param>
         </member>
-        <member name="M:Vintagestory.API.Config.Lang.LoadLanguage(Vintagestory.API.Common.ILogger,Vintagestory.API.Common.IAssetManager,System.String,System.Boolean)">
+        <member name="M:Vintagestory.API.Config.Lang.LoadLanguage(Vintagestory.API.Common.ILogger,Vintagestory.API.Common.IAssetManager,System.String,System.Boolean,Vintagestory.API.Client.EnumLinebreakBehavior)">
             <summary>
             Loads translation key/value pairs from all relevant JSON files within the Asset Manager.
             </summary>
@@ -24678,7 +24877,12 @@
         </member>
         <member name="F:Vintagestory.API.Config.GlobalConstants.CurrentWindSpeedClient">
             <summary>
-            Set by the WeatherSimulation System in the survival mod
+            Set by the WeatherSimulation System in the survival mod at the players position
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Config.GlobalConstants.CurrentNearbyRelLeavesCountClient">
+            <summary>
+            Set by the game client at the players position
             </summary>
         </member>
         <member name="F:Vintagestory.API.Config.GlobalConstants.MeltingFreezingEnabled">
@@ -27912,6 +28116,13 @@
         <member name="M:Vintagestory.API.MathTools.ColorUtil.Int2Hex(System.Int32)">
             <summary>
             Turn a color int into its string hex version, including preceeding #
+            </summary>
+            <param name="color"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Vintagestory.API.MathTools.ColorUtil.Int2HexRgba(System.Int32)">
+            <summary>
+            Turn a color int into its string hex version, including preceeding #, including alpha channel
             </summary>
             <param name="color"></param>
             <returns></returns>
@@ -31277,12 +31488,17 @@
         </member>
         <member name="F:Vintagestory.API.Server.EnumServerRunPhase.LoadAssets">
             <summary>
-            Mods will be compiled and started, AssetManager will init all origins and cache assets.
+            Mods will be compiled and started, AssetManager will init all origins and cache assets. Mods are initialized at this point (PreStart/Start method)
+            </summary>
+        </member>
+        <member name="F:Vintagestory.API.Server.EnumServerRunPhase.AssetsFinalize">
+            <summary>
+            Final touches for loaded assets. Mods receive AssetsFinalize() call
             </summary>
         </member>
         <member name="F:Vintagestory.API.Server.EnumServerRunPhase.LoadGamePre">
             <summary>
-            All configs loaded, game world loaded by server. Mods receive events at this point.
+            All configs loaded, game world loaded by server. Mods receive StartClient/ServerSide and events at this point. 
             </summary>
         </member>
         <member name="F:Vintagestory.API.Server.EnumServerRunPhase.GameReady">

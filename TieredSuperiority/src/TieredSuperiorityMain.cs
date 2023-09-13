@@ -1,9 +1,10 @@
-﻿using HarmonyLib;
-using ProtoBuf;
+﻿using ProtoBuf;
 using System.Linq;
+
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 
 namespace TieredSuperiority.src
 {
@@ -43,7 +44,7 @@ namespace TieredSuperiority.src
                 .RegisterMessageType(typeof(SoundMessage));
 
             sapi.ChatCommands
-                .GetOrCreate("testcmd")
+                .GetOrCreate("tsc")
                 .IgnoreAdditionalArgs()
                 .RequiresPrivilege("worldedit")
                 .WithDescription("TS mod debug commands")
@@ -67,8 +68,7 @@ namespace TieredSuperiority.src
                     {
                         if (behavior is TSBehavior)
                         {
-                            sapi.BroadcastMessageToAllGroups(item.Code + ":", EnumChatType.Notification);
-                            sapi.BroadcastMessageToAllGroups("\t" + behavior.GetType().Name, EnumChatType.Notification);
+                            sapi.BroadcastMessageToAllGroups(item.Code.Path, EnumChatType.Notification);
                         }
                     }
                 }
@@ -102,11 +102,13 @@ namespace TieredSuperiority.src
                 if (item.Code != null && item.Tool != null && item.ToolTier >= 1)
                 {
                     if (item.Tool == EnumTool.Hammer)
-                        item.CollectibleBehaviors = (CollectibleBehavior[])item.CollectibleBehaviors.Append(new TSBehaviorHammer(item));
+                        item.CollectibleBehaviors = item.CollectibleBehaviors.Append(new TSBehaviorHammer(item));
                     else
-                        item.CollectibleBehaviors = (CollectibleBehavior[])item.CollectibleBehaviors.Append(new TSBehavior(item));
+                        item.CollectibleBehaviors = item.CollectibleBehaviors.Append(new TSBehavior(item));
                 }
             }
+
+            api.Logger.StoryEvent("Loading TS");
         }
 
 

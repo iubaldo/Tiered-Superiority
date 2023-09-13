@@ -18,11 +18,7 @@ namespace TieredSuperiority.src
 
         public override void OnHeldAttackStop(float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSelection, EntitySelection entitySel, ref EnumHandHandling handling)
         {
-            currDurability = collObj.Durability;
-
             base.OnHeldAttackStop(secondsPassed, slot, byEntity, blockSelection, entitySel, ref handling); // hammer loses durability here
-
-            int durabilityDiff = currDurability - collObj.Durability;
 
             BlockEntity be = byEntity.World.BlockAccessor.GetBlockEntity(blockSelection.Position);
             if (!(byEntity.World.BlockAccessor.GetBlock(blockSelection.Position) is BlockAnvil)) return;
@@ -61,7 +57,7 @@ namespace TieredSuperiority.src
                 default: workitemtier = 0; break;
             }
 
-            RefundDurability(byEntity, slot, durabilityDiff, workitemtier);
+            RefundDurability(byEntity, slot, workitemtier);
         }
     }
 }

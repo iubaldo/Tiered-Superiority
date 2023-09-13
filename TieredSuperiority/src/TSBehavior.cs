@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Server;
@@ -34,23 +31,20 @@ namespace TieredSuperiority.src
 
         public void RefundDurability(Entity byEntity, ItemSlot itemslot, int selectionTier)
         {
-            TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("calling refunddurability", EnumChatType.Notification);
+            if (byEntity.World.Api.Side == EnumAppSide.Client)
+                return;
 
-            bool playOnce = true;
-            int refundChance = 10 * (collObj.ToolTier - selectionTier); // 10% per tier difference
+            int refundChance = TieredSuperiorityMain.config.chancePerTier * (collObj.ToolTier - selectionTier); // by default, 10% per tier difference
             
-            TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refund Chance: 10 x " + "(" + collObj.ToolTier + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+            // TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance +" x " + "(" + collObj.ToolTier + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
 
             if (rand.Next(100) < refundChance)
             {
                 collObj.Durability++;
-                TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
+                // TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
 
-                if (playOnce)
-                {
+                if (TieredSuperiorityMain.config.playSound)
                     TieredSuperiorityMain.sSoundChannel.SendPacket(new SoundMessage() { shouldPlay = true }, (IServerPlayer)((EntityPlayer)byEntity).Player);
-                    playOnce = false;
-                }
 
                 itemslot.MarkDirty();
             }

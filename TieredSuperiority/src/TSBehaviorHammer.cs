@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vintagestory.API.Common;
+﻿using Vintagestory.API.Common;
 using Vintagestory.GameContent;
 
 namespace TieredSuperiority.src
 {
     internal class TSBehaviorHammer : TSBehavior
     {
-        int currDurability;
-
+        long timeSinceLastCall = -1;
 
         public TSBehaviorHammer(CollectibleObject collObj) : base(collObj) { }
 
@@ -19,6 +13,18 @@ namespace TieredSuperiority.src
         public override void OnHeldAttackStop(float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSelection, EntitySelection entitySel, ref EnumHandHandling handling)
         {
             base.OnHeldAttackStop(secondsPassed, slot, byEntity, blockSelection, entitySel, ref handling); // hammer loses durability here
+
+            if (TieredSuperiorityMain.sapi.Side == EnumAppSide.Client)
+                return;
+
+            if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - timeSinceLastCall < 0.5)
+            {
+                timeSinceLastCall = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+                return;
+            }
+            timeSinceLastCall = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+
+            // TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("calling tsbehaviorhammer onheldattack stop", EnumChatType.Notification);
 
             BlockEntity be = byEntity.World.BlockAccessor.GetBlockEntity(blockSelection.Position);
             if (!(byEntity.World.BlockAccessor.GetBlock(blockSelection.Position) is BlockAnvil)) return;
@@ -54,7 +60,7 @@ namespace TieredSuperiority.src
                 // case "rhodium": workitemtier = 7; break;
                 // case "uranium": workitemtier = 8; break;
 
-                default: workitemtier = 0; break;
+                default: workitemtier = 0; TieredSuperiorityMain.sapi.Logger.Notification("[TieredSuperiority] Could not find match for metal variant, defaulting to workItemTier = 0."); break;
             }
 
             RefundDurability(byEntity, slot, workitemtier);

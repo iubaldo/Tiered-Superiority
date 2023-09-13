@@ -9,17 +9,16 @@ using Vintagestory.GameContent;
 
 using ProtoBuf;
 using HarmonyLib;
-
+using System.Text;
 
 namespace TieredSuperiority.src
 {
-    [HarmonyPatch]
     public class TieredSuperiorityMain: ModSystem
     {
-        Harmony harmony;
-
-        readonly string CONFIG_FILE_NAME = "tieredsuperiorityconfig.json";
-        bool requireInit = true; // init sounds only once
+        const string CONFIG_FILE_NAME = "tieredsuperiorityconfig.json";
+        const string PATCH_CODE = "Landar.TieredSuperiority.TieredSuperiorityMain";
+        
+        public Harmony harmony = new Harmony(PATCH_CODE);
 
         internal static TSConfig config;
 
@@ -31,6 +30,8 @@ namespace TieredSuperiority.src
 
         ILoadedSound dingSound;
 
+        bool requireInit = true; // init sounds only once
+
 
         public override void Start(ICoreAPI api)
         {
@@ -40,8 +41,15 @@ namespace TieredSuperiority.src
             api.RegisterCollectibleBehaviorClass("TSBehavior", typeof(TSBehavior));
             api.RegisterCollectibleBehaviorClass("TSBehaviorHammer", typeof(TSBehaviorHammer));
 
-            harmony = new Harmony("TieredSuperiority");
+            // apply harmony patches
             harmony.PatchAll();
+
+            StringBuilder builder = new StringBuilder("Harmony Patched Methods: ");
+            foreach (var val in harmony.GetPatchedMethods())
+            {
+                builder.Append(val.Name + ", ");
+            }
+            Mod.Logger.Notification(builder.ToString());
         }
 
 
@@ -119,26 +127,12 @@ namespace TieredSuperiority.src
         }
 
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(ItemHammer), "OnHeldAttackStop")]
-        public static void HammerPostStrike(ItemHammer __instance, float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
-        {
-            if (blockSel == null || secondsPassed < 0.4f) return;
-
-
-            EnumHandHandling handling = EnumHandHandling.Handled;
-            TSBehaviorHammer behavior = __instance.CollectibleBehaviors.OfType<TSBehaviorHammer>().DefaultIfEmpty(null).FirstOrDefault();
-            if (behavior != null)
-                behavior.OnHeldAttackStop(secondsPassed, slot, byEntity, blockSel, entitySel, ref handling);
-        }
-
-
         public override void Dispose()
         {
             base.Dispose();
 
             if (harmony != null)
-                harmony.UnpatchAll("TieredSuperiority");
+                harmony.UnpatchAll(PATCH_CODE);
         }
     }
 

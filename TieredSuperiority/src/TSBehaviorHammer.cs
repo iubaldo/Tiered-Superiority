@@ -1,13 +1,21 @@
 ﻿using Vintagestory.API.Common;
 using Vintagestory.GameContent;
 
+using HarmonyLib;
+using System.Linq;
+
 namespace TieredSuperiority.src
 {
-    internal class TSBehaviorHammer : TSBehavior
+    [HarmonyPatch(typeof(ItemHammer))]
+    [HarmonyPatch("OnHeldAttackStop")]
+    public class TSBehaviorHammer : TSBehavior
     {
         long timeSinceLastCall = -1;
 
-        public TSBehaviorHammer(CollectibleObject collObj) : base(collObj) { }
+        public TSBehaviorHammer(CollectibleObject collObj) : base(collObj) 
+        {
+            
+        }
 
 
         public override void OnHeldAttackStop(float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSelection, EntitySelection entitySel, ref EnumHandHandling handling)
@@ -64,6 +72,17 @@ namespace TieredSuperiority.src
             }
 
             RefundDurability(byEntity, slot, workitemtier);
+        }
+
+
+        public static void Postfix(ItemHammer __instance, float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
+        {
+            if (blockSel == null || secondsPassed < 0.4f) return;
+
+            EnumHandHandling handling = EnumHandHandling.Handled;
+            TSBehaviorHammer behavior = __instance.CollectibleBehaviors.OfType<TSBehaviorHammer>().DefaultIfEmpty(null).FirstOrDefault();
+            if (behavior != null)
+                behavior.OnHeldAttackStop(secondsPassed, slot, byEntity, blockSel, entitySel, ref handling);
         }
     }
 }

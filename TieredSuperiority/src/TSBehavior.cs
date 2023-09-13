@@ -6,7 +6,7 @@ using Vintagestory.API.Server;
 
 namespace TieredSuperiority.src
 {
-    internal class TSBehavior : CollectibleBehavior
+    public class TSBehavior : CollectibleBehavior
     {
         Random rand = new();
 
@@ -36,12 +36,12 @@ namespace TieredSuperiority.src
 
             int refundChance = TieredSuperiorityMain.config.chancePerTier * (collObj.ToolTier - selectionTier); // by default, 10% per tier difference
             
-            // TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance +" x " + "(" + collObj.ToolTier + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+            TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance +" x " + "(" + collObj.ToolTier + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
 
             if (rand.Next(100) < refundChance)
             {
                 collObj.Durability++;
-                // TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
+                TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
 
                 if (TieredSuperiorityMain.config.playSound)
                     TieredSuperiorityMain.sSoundChannel.SendPacket(new SoundMessage() { shouldPlay = true }, (IServerPlayer)((EntityPlayer)byEntity).Player);

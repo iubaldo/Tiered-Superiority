@@ -5,11 +5,21 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
-using Vintagestory.GameContent;
 
 using ProtoBuf;
 using HarmonyLib;
-using System.Text;
+
+
+/*
+ * TODO:
+ *      - fix behavior for axe tree felling
+ *      - harmony patch for shears/scythe multi hit
+ *      - harmony patch for attacking weapons vs armor
+ *      
+ *      maybe
+ *      - adjust comparison tier for tools like shovels, knives, etc since their tool tier is 0 no matter what
+ */
+
 
 namespace TieredSuperiority.src
 {
@@ -44,12 +54,12 @@ namespace TieredSuperiority.src
             // apply harmony patches
             harmony.PatchAll();
 
-            StringBuilder builder = new StringBuilder("Harmony Patched Methods: ");
-            foreach (var val in harmony.GetPatchedMethods())
-            {
-                builder.Append(val.Name + ", ");
-            }
-            Mod.Logger.Notification(builder.ToString());
+            //StringBuilder builder = new StringBuilder("Harmony Patched Methods: ");
+            //foreach (var val in harmony.GetPatchedMethods())
+            //{
+            //    builder.Append(val.Name + ", ");
+            //}
+            //Mod.Logger.Notification(builder.ToString());
         }
 
 
@@ -94,15 +104,29 @@ namespace TieredSuperiority.src
             // append behaviors without using JSON patching
             foreach(Item item in api.World.Items)
             {
-                if (item.Code != null && item.Tool != null && item.ToolTier >= 1)
+                if (item.Code != null && item.Tool != null)
                 {
                     if (item.Tool == EnumTool.Hammer)
                         item.CollectibleBehaviors = item.CollectibleBehaviors.Append(new TSBehaviorHammer(item));
-                        
-                    else
+                    else if (item.Tool == EnumTool.Shovel 
+                        || item.Tool == EnumTool.Saw
+                        || item.Tool == EnumTool.Pickaxe
+                        || item.Tool == EnumTool.Axe
+                        || item.Tool == EnumTool.Hoe
+                        || item.Tool == EnumTool.Wrench
+                        || item.Tool == EnumTool.Sword
+                        || item.Tool == EnumTool.Knife)
                         item.CollectibleBehaviors = item.CollectibleBehaviors.Append(new TSBehavior(item));
                 }
             }
+
+            //StringBuilder builder = new StringBuilder("Attached behavior to the following items: ");
+            //foreach (Item item in api.World.Items)
+            //{
+            //    if (item.CollectibleBehaviors.OfType<TSBehavior>().Any())
+            //        builder.Append("\n" + item.Code.Path);
+            //}
+            //Mod.Logger.Notification(builder.ToString());
         }
 
 

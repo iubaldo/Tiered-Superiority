@@ -12,10 +12,8 @@ namespace TieredSuperiority.src
     {
         long timeSinceLastCall = -1;
 
-        public TSBehaviorHammer(CollectibleObject collObj) : base(collObj) 
-        {
-            
-        }
+
+        public TSBehaviorHammer(CollectibleObject collObj) : base(collObj) { }
 
 
         public override void OnHeldAttackStop(float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSelection, EntitySelection entitySel, ref EnumHandHandling handling)

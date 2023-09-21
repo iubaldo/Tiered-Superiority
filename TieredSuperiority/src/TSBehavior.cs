@@ -1,56 +1,96 @@
-﻿using System;
-using System.Linq;
-using Vintagestory.API.Common;
+﻿using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using Vintagestory.API.Server;
+
+using HarmonyLib;
+using Vintagestory.GameContent;
 
 namespace TieredSuperiority.src
 {
+    [HarmonyPatch]
     public class TSBehavior : CollectibleBehavior
     {
-        Random rand = new();
+        public int initDurability;
+        public long timeLastCalled = -1;
 
 
         public TSBehavior(CollectibleObject collObj) : base(collObj) { }
 
 
-        public override bool OnBlockBrokenWith(IWorldAccessor world, Entity byEntity, ItemSlot itemslot, BlockSelection blockSel, float dropQuantityMultiplier, ref EnumHandling bhHandling)
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(CollectibleObject), "OnBlockBrokenWith")]
+        public static void PrefixOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot)
         {
+            if (byEntity.World.Side == EnumAppSide.Client)
+                return;
 
-            int blockTier = byEntity.World.BlockAccessor.GetBlock(blockSel.Position).RequiredMiningTier;
+            TSBehavior behavior = __instance.GetCollectibleBehavior(typeof(TSBehavior), false) as TSBehavior;
 
-            bool toReturn = base.OnBlockBrokenWith(world, byEntity, itemslot, blockSel, dropQuantityMultiplier, ref bhHandling); 
-
-            if (world.Api.Side == EnumAppSide.Client)
-                return toReturn;
-
-            if (collObj.DamagedBy != null && collObj.DamagedBy.Contains(EnumItemDamageSource.BlockBreaking))
-                RefundDurability(byEntity, itemslot, blockTier);
-
-            return toReturn;
+            if (behavior != null)
+                behavior.initDurability = __instance.GetRemainingDurability(itemslot.Itemstack);
         }
 
 
-        public void RefundDurability(Entity byEntity, ItemSlot itemslot, int selectionTier)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(CollectibleObject), "OnBlockBrokenWith")]
+        public static void PostfixOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot, BlockSelection blockSel)
         {
-            if (byEntity.World.Api.Side == EnumAppSide.Client)
+            if (byEntity.World.Side == EnumAppSide.Client)
                 return;
 
-            int adjustedChance = Math.Clamp(TieredSuperiorityMain.config.chancePerTier, 0, 100);
-            int refundChance = adjustedChance * (collObj.ToolTier - selectionTier); // by default, 10% per tier difference
-            
-            // TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + collObj.ToolTier + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+            TSBehavior behavior = __instance.GetCollectibleBehavior(typeof(TSBehavior), false) as TSBehavior;
 
-            if (rand.Next(100) < refundChance)
+            if (behavior == null)
+                return;
+
+            if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - behavior.timeLastCalled < 0.5)
             {
-                collObj.Durability++;
-                // TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
-
-                if (TieredSuperiorityMain.config.playSound)
-                    TieredSuperiorityMain.sSoundChannel.SendPacket(new SoundMessage() { shouldPlay = true }, (IServerPlayer)((EntityPlayer)byEntity).Player);
-
-                itemslot.MarkDirty();
+                behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+                return;
             }
+            behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+
+            int durabilityDiff = behavior.initDurability - __instance.GetRemainingDurability(itemslot.Itemstack);
+            int selectionTier = blockSel.Block.RequiredMiningTier;
+
+            TieredSuperiorityMain.sapi.Logger.Notification("durabilityDiff: " + behavior.initDurability + " - " + __instance.GetRemainingDurability(itemslot.Itemstack) + " = " + durabilityDiff);
+            if (durabilityDiff > 0)
+                TieredSuperiorityMain.RefundDurability(__instance, byEntity, itemslot, selectionTier, durabilityDiff);
+        }
+
+
+        // Patches for items that don't use base.OnBlockBrokenWith
+
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ItemAxe), "OnBlockBrokenWith")]
+        public static void PrefixAxeOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot)
+        {
+            PrefixOnBlockBrokenWith(__instance, byEntity, itemslot);
+        }
+
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ItemAxe), "OnBlockBrokenWith")]
+        public static void PostfixAxeOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot, BlockSelection blockSel)
+        {
+            PostfixOnBlockBrokenWith(__instance, byEntity, itemslot, blockSel);
+        }
+
+
+        // Note: ItemScythe extends ItemShears, so only need to patch shears
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(ItemShears), "OnBlockBrokenWith")]
+        public static void PrefixShearsOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot)
+        {
+            PrefixOnBlockBrokenWith(__instance, byEntity, itemslot);
+        }
+
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ItemShears), "OnBlockBrokenWith")]
+        public static void PostfixShearsOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot, BlockSelection blockSel)
+        {
+            PostfixOnBlockBrokenWith(__instance, byEntity, itemslot, blockSel);
         }
     }
 }

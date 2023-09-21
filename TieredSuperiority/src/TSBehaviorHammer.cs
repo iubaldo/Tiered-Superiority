@@ -27,10 +27,7 @@ namespace TieredSuperiority.src
             TSBehaviorHammer behavior = __instance.GetCollectibleBehavior(typeof(TSBehaviorHammer), false) as TSBehaviorHammer;
 
             if (behavior == null)
-            {
-                TieredSuperiorityMain.sapi.Logger.Notification("behavior null");
                 return;
-            }
 
             if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - behavior.timeLastCalled < 0.5)
             {

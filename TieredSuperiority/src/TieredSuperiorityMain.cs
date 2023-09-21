@@ -115,7 +115,7 @@ namespace TieredSuperiority.src
                 }
             }
 
-            api.Logger.StoryEvent("Loading TS");
+            //api.Logger.StoryEvent("Loading TS");
         }
 
 
@@ -136,8 +136,8 @@ namespace TieredSuperiority.src
             int adjustedChance = Math.Clamp(config.chancePerTier, 0, 100);
             int refundChance = adjustedChance * ((obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) - selectionTier); // by default, 10% per tier difference
 
-            sapi.BroadcastMessageToAllGroups("Durability diff: " + durabilityDiff, EnumChatType.Notification);
-            sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+            //sapi.BroadcastMessageToAllGroups("Durability diff: " + durabilityDiff, EnumChatType.Notification);
+            //sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
 
             bool playOnce = false;
             for (int i = 0; i < durabilityDiff; i++)
@@ -145,7 +145,7 @@ namespace TieredSuperiority.src
                 if (rand.Next(100) < refundChance)
                 {
                     itemslot.Itemstack.Attributes.SetInt("durability", obj.GetRemainingDurability(itemslot.Itemstack) + 1);
-                    sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
+                    //sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
 
                     if (config.playSound && !playOnce)
                     {

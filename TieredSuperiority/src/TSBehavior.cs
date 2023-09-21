@@ -52,7 +52,7 @@ namespace TieredSuperiority.src
             int durabilityDiff = behavior.initDurability - __instance.GetRemainingDurability(itemslot.Itemstack);
             int selectionTier = blockSel.Block.RequiredMiningTier;
 
-            TieredSuperiorityMain.sapi.Logger.Notification("durabilityDiff: " + behavior.initDurability + " - " + __instance.GetRemainingDurability(itemslot.Itemstack) + " = " + durabilityDiff);
+            //TieredSuperiorityMain.sapi.Logger.Notification("durabilityDiff: " + behavior.initDurability + " - " + __instance.GetRemainingDurability(itemslot.Itemstack) + " = " + durabilityDiff);
             if (durabilityDiff > 0)
                 TieredSuperiorityMain.RefundDurability(__instance, byEntity, itemslot, selectionTier, durabilityDiff);
         }

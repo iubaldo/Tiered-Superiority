@@ -6,7 +6,7 @@
         "Landar"
     ],
     "description": "Provides a chance to refund durability of tools when used based on tool tier.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "dependencies": {
         "game": "1.18.8"
     }

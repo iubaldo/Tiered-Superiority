@@ -6,48 +6,47 @@ using System.Linq;
 
 namespace TieredSuperiority.src
 {
-    [HarmonyPatch(typeof(ItemHammer))]
-    [HarmonyPatch("OnHeldAttackStop")]
-    public class TSBehaviorHammer : TSBehavior
+    [HarmonyPatch]
+    public class TSBehaviorHammer : CollectibleBehavior
     {
+        public long timeLastCalled = -1;
+
+
         public TSBehaviorHammer(CollectibleObject collObj) : base(collObj) { }
 
 
-        public override void OnHeldAttackStop(float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSelection, EntitySelection entitySel, ref EnumHandHandling handling)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ItemHammer), "OnHeldAttackStop")]
+        public static void PostfixHammerOnHeldAttackStop(ItemHammer __instance, float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
         {
-            base.OnHeldAttackStop(secondsPassed, slot, byEntity, blockSelection, entitySel, ref handling); // hammer loses durability here
-
             if (byEntity.World.Side == EnumAppSide.Client)
                 return;
 
-            if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - timeLastCalled < 0.5)
+            if (blockSel == null || secondsPassed < 0.4f) return;
+
+            TSBehaviorHammer behavior = __instance.GetCollectibleBehavior(typeof(TSBehaviorHammer), false) as TSBehaviorHammer;
+
+            if (behavior == null)
             {
-                timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+                TieredSuperiorityMain.sapi.Logger.Notification("behavior null");
                 return;
             }
-            timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
 
-            // TieredSuperiorityMain.sapi.BroadcastMessageToAllGroups("calling tsbehaviorhammer onheldattack stop", EnumChatType.Notification);
+            if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - behavior.timeLastCalled < 0.5)
+            {
+                behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+                return;
+            }
+            behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
 
-            BlockEntity be = byEntity.World.BlockAccessor.GetBlockEntity(blockSelection.Position);
-            if (!(byEntity.World.BlockAccessor.GetBlock(blockSelection.Position) is BlockAnvil)) return;
+            BlockEntity be = byEntity.World.BlockAccessor.GetBlockEntity(blockSel.Position);
+            if (byEntity.World.BlockAccessor.GetBlock(blockSel.Position) is not BlockAnvil) return;
             BlockEntityAnvil bea = be as BlockEntityAnvil;
             if (bea == null) return;
 
             int workitemtier = TieredSuperiorityMain.ResolveTier(bea.WorkItemStack.Item.Variant["metal"]);
 
-            TieredSuperiorityMain.RefundDurability(collObj, byEntity, slot, workitemtier, 1);
-        }
-
-
-        public static void Postfix(ItemHammer __instance, float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
-        {
-            if (blockSel == null || secondsPassed < 0.4f) return;
-
-            EnumHandHandling handling = EnumHandHandling.Handled;
-            TSBehaviorHammer behavior = __instance.CollectibleBehaviors.OfType<TSBehaviorHammer>().DefaultIfEmpty(null).FirstOrDefault();
-            if (behavior != null)
-                behavior.OnHeldAttackStop(secondsPassed, slot, byEntity, blockSel, entitySel, ref handling);
+            TieredSuperiorityMain.RefundDurability(__instance, byEntity, slot, workitemtier, 1);
         }
     }
 }

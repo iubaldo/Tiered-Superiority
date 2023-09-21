@@ -110,7 +110,7 @@ namespace TieredSuperiority.src
                 {
                     if (item.Tool == EnumTool.Hammer)
                         item.CollectibleBehaviors = item.CollectibleBehaviors.Append(new TSBehaviorHammer(item));
-                    else if (IsTool(item))
+                    if (IsTool(item))
                         item.CollectibleBehaviors = item.CollectibleBehaviors.Append(new TSBehavior(item));
                 }
             }

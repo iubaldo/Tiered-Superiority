@@ -84,6 +84,8 @@ namespace TieredSuperiority.src
                 config = new();
 
             sapi.StoreModConfig(config, CONFIG_FILE_NAME);
+
+            // RegisterCommands();
         }
 
 
@@ -136,8 +138,8 @@ namespace TieredSuperiority.src
             int adjustedChance = Math.Clamp(config.chancePerTier, 0, 100);
             int refundChance = adjustedChance * ((obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) - selectionTier); // by default, 10% per tier difference
 
-            //sapi.BroadcastMessageToAllGroups("Durability diff: " + durabilityDiff, EnumChatType.Notification);
-            //sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+            // sapi.BroadcastMessageToAllGroups("Durability diff: " + durabilityDiff, EnumChatType.Notification);
+            // sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
 
             bool playOnce = false;
             for (int i = 0; i < durabilityDiff; i++)
@@ -145,7 +147,7 @@ namespace TieredSuperiority.src
                 if (rand.Next(100) < refundChance)
                 {
                     itemslot.Itemstack.Attributes.SetInt("durability", obj.GetRemainingDurability(itemslot.Itemstack) + 1);
-                    //sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
+                    // sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
 
                     if (config.playSound && !playOnce)
                     {
@@ -249,6 +251,43 @@ namespace TieredSuperiority.src
 
             if (message.shouldPlay)
                 dingSound.Start();
+        }
+
+
+        void RegisterCommands()
+        {
+            CommandArgumentParsers parsers = sapi.ChatCommands.Parsers;
+
+            sapi.ChatCommands
+                .GetOrCreate("ts")
+                .IgnoreAdditionalArgs()
+                .RequiresPrivilege("worldedit")
+                .WithDescription("Tiered Superiority Mod debug commands.")
+
+                .BeginSubCommand("setDurability")
+                    .WithDescription("Sets the durability of the tool in your main hand, if any.")
+                    .WithArgs(parsers.IntRange("newDurability", 0, int.MaxValue))
+                    .HandleWith(OnCmdSetDurability)
+                .EndSubCommand()
+            ;
+        }
+
+
+        TextCommandResult OnCmdSetDurability(TextCommandCallingArgs args)
+        {
+            ItemSlot slot = args.Caller.Player.InventoryManager.ActiveHotbarSlot;
+            Item item = slot.Itemstack.Item;
+            if (item == null)
+                return TextCommandResult.Error("Error, could not find item in hand.");
+
+            if (!IsTool(item))
+                return TextCommandResult.Error("Error, item in hand is not a valid tool.");
+
+            int newDurability = (int)args[0];
+            slot.Itemstack.Attributes.SetInt("durability", newDurability);
+            slot.MarkDirty();
+
+            return TextCommandResult.Success();
         }
 
 

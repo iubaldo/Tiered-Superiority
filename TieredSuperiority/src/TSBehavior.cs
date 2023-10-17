@@ -37,6 +37,13 @@ namespace TieredSuperiority.src
             if (byEntity.World.Side == EnumAppSide.Client)
                 return;
 
+            if (itemslot.Itemstack == null)
+            {
+                // TieredSuperiorityMain.sapi.Logger.Notification("item broke before calculation");
+                return;
+            }
+                
+
             TSBehavior behavior = __instance.GetCollectibleBehavior(typeof(TSBehavior), false) as TSBehavior;
 
             if (behavior == null)

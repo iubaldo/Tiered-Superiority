@@ -24,6 +24,13 @@ namespace TieredSuperiority.src
 
             if (blockSel == null || secondsPassed < 0.4f) return;
 
+            if (slot.Itemstack == null)
+            {
+                // TieredSuperiorityMain.sapi.Logger.Notification("item broke before calculation");
+                return;
+            }
+
+
             TSBehaviorHammer behavior = __instance.GetCollectibleBehavior(typeof(TSBehaviorHammer), false) as TSBehaviorHammer;
 
             if (behavior == null)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -10,16 +9,14 @@ using Vintagestory.API.Util;
 using ProtoBuf;
 using HarmonyLib;
 using Vintagestory.API.Common.Entities;
+using System.Text;
 
 
 /*
  * TODO:
- *      - fix behavior for axe tree felling
- *      - harmony patch for shears/scythe multi hit
- *      - harmony patch for attacking weapons vs armor
- *      
- *      maybe
- *      - adjust comparison tier for tools like shovels, knives, etc since their tool tier is 0 no matter what
+ *      - implement tier difference for attacking weapons vs armor
+ *      - implement tier difference for crafting
+ *          - check crafting tool in grid vs highest other tier item in recipe, default to 1 if none
  */
 
 
@@ -27,6 +24,7 @@ namespace TieredSuperiority.src
 {
     public class TieredSuperiorityMain: ModSystem
     {
+        internal static bool debugMode = true; // enables verbose debug print statements and debug commands
         const string CONFIG_FILE_NAME = "tieredsuperiorityconfig.json";
         const string PATCH_CODE = "Landar.TieredSuperiority.TieredSuperiorityMain";
         
@@ -57,11 +55,14 @@ namespace TieredSuperiority.src
             // apply harmony patches
             harmony.PatchAll();
 
-            //StringBuilder builder = new StringBuilder("Harmony Patched Methods: ");
-            //foreach (var val in harmony.GetPatchedMethods())
-            //    builder.Append(val.Name + ", ");
+            if (debugMode)
+            {
+                StringBuilder builder = new StringBuilder("Harmony Patched Methods: ");
+                foreach (var val in harmony.GetPatchedMethods())
+                    builder.Append(val.Name + ", ");
 
-            //Mod.Logger.Notification(builder.ToString());
+                Mod.Logger.Notification(builder.ToString());
+            }
         }
 
 
@@ -85,7 +86,10 @@ namespace TieredSuperiority.src
 
             sapi.StoreModConfig(config, CONFIG_FILE_NAME);
 
-            // RegisterCommands();
+            if (debugMode)
+            {
+                RegisterCommands();
+            }
         }
 
 
@@ -117,7 +121,10 @@ namespace TieredSuperiority.src
                 }
             }
 
-            //api.Logger.StoryEvent("Loading TS");
+            if (debugMode)
+            {
+                api.Logger.StoryEvent("Loading TS");
+            }
         }
 
 
@@ -138,8 +145,11 @@ namespace TieredSuperiority.src
             int adjustedChance = Math.Clamp(config.chancePerTier, 0, 100);
             int refundChance = adjustedChance * ((obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) - selectionTier); // by default, 10% per tier difference
 
-            // sapi.BroadcastMessageToAllGroups("Durability diff: " + durabilityDiff, EnumChatType.Notification);
-            // sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+            if (debugMode)
+            {
+                sapi.BroadcastMessageToAllGroups("Durability diff: " + durabilityDiff, EnumChatType.Notification);
+                sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+            }          
 
             bool playOnce = false;
             for (int i = 0; i < durabilityDiff; i++)
@@ -147,7 +157,12 @@ namespace TieredSuperiority.src
                 if (rand.Next(100) < refundChance)
                 {
                     itemslot.Itemstack.Attributes.SetInt("durability", obj.GetRemainingDurability(itemslot.Itemstack) + 1);
-                    // sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
+
+                    if (debugMode)
+                    {
+                        sapi.BroadcastMessageToAllGroups("Refunded tool durability.", EnumChatType.Notification);
+                    }
+                    
 
                     if (config.playSound && !playOnce)
                     {
@@ -254,6 +269,7 @@ namespace TieredSuperiority.src
         }
 
 
+        // for debug purposes only, remember to disable before release
         void RegisterCommands()
         {
             CommandArgumentParsers parsers = sapi.ChatCommands.Parsers;

@@ -9,8 +9,8 @@ namespace TieredSuperiority.src
     [HarmonyPatch]
     public class TSBehavior : CollectibleBehavior
     {
-        public int initDurability;
-        public long timeLastCalled = -1;
+        int initDurability;
+        long timeLastCalled = -1;
 
 
         public TSBehavior(CollectibleObject collObj) : base(collObj) { }
@@ -39,7 +39,10 @@ namespace TieredSuperiority.src
 
             if (itemslot.Itemstack == null)
             {
-                // TieredSuperiorityMain.sapi.Logger.Notification("item broke before calculation");
+                if (TieredSuperiorityMain.debugMode)
+                {
+                    TieredSuperiorityMain.sapi.Logger.Notification("item broke before calculation");
+                }
                 return;
             }
                 
@@ -59,13 +62,17 @@ namespace TieredSuperiority.src
             int durabilityDiff = behavior.initDurability - __instance.GetRemainingDurability(itemslot.Itemstack);
             int selectionTier = blockSel.Block.RequiredMiningTier;
 
-            //TieredSuperiorityMain.sapi.Logger.Notification("durabilityDiff: " + behavior.initDurability + " - " + __instance.GetRemainingDurability(itemslot.Itemstack) + " = " + durabilityDiff);
+            if (TieredSuperiorityMain.debugMode)
+            {
+                TieredSuperiorityMain.sapi.Logger.Notification("durabilityDiff: " + behavior.initDurability + " - " + __instance.GetRemainingDurability(itemslot.Itemstack) + " = " + durabilityDiff);
+            }
+
             if (durabilityDiff > 0)
                 TieredSuperiorityMain.RefundDurability(__instance, byEntity, itemslot, selectionTier, durabilityDiff);
         }
 
 
-        // Patches for items that don't use base.OnBlockBrokenWith
+        // Patches for items that don't use base.OnBlockBrokenWith, mostly ones that can multibreak
 
 
         [HarmonyPrefix]

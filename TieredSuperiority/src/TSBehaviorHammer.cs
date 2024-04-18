@@ -11,25 +11,23 @@ namespace TieredSuperiority.src
     {
         public long timeLastCalled = -1;
 
-
         public TSBehaviorHammer(CollectibleObject collObj) : base(collObj) { }
 
-
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(ItemHammer), "OnHeldAttackStop")]
-        public static void PostfixHammerOnHeldAttackStop(ItemHammer __instance, float secondsPassed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel)
+        [HarmonyPatch(typeof(ItemHammer), "strikeAnvil")]
+        public static void PostfixStrikeAnvil(ItemHammer __instance, EntityAgent byEntity, ItemSlot slot)
         {
             if (byEntity.World.Side == EnumAppSide.Client)
                 return;
 
-            if (blockSel == null || secondsPassed < 0.4f) return;
-
             if (slot.Itemstack == null)
             {
-                // TieredSuperiorityMain.sapi.Logger.Notification("item broke before calculation");
+                if (TieredSuperiorityMain.debugMode)
+                {
+                    TieredSuperiorityMain.sapi.Logger.Notification("item broke before calculation");
+                }
                 return;
             }
-
 
             TSBehaviorHammer behavior = __instance.GetCollectibleBehavior(typeof(TSBehaviorHammer), false) as TSBehaviorHammer;
 
@@ -43,10 +41,18 @@ namespace TieredSuperiority.src
             }
             behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
 
+            IPlayer byPlayer = (byEntity as EntityPlayer).Player;
+            if (byPlayer == null) return;
+
+            var blockSel = byPlayer.CurrentBlockSelection;
+            if (blockSel == null) return;
+
             BlockEntity be = byEntity.World.BlockAccessor.GetBlockEntity(blockSel.Position);
+
             if (byEntity.World.BlockAccessor.GetBlock(blockSel.Position) is not BlockAnvil) return;
+
+            if (!(byEntity.World.BlockAccessor.GetBlock(blockSel.Position) is BlockAnvil)) return;
             BlockEntityAnvil bea = be as BlockEntityAnvil;
-            if (bea == null) return;
 
             int workitemtier = TieredSuperiorityMain.ResolveTier(bea.WorkItemStack.Item.Variant["metal"]);
 

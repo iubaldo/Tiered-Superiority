@@ -51,4 +51,8 @@
   <Content Remove="..\resources\assets\TieredSuperiority\patches\**" />
 </ItemGroup>
 
+<ItemGroup>
+  <Content Remove="..\resources\assets\tieredsuperiority\config\tsconfigs.json" />
+</ItemGroup>
+
 </Project>

@@ -3,7 +3,7 @@
     "Client": {
       "commandName": "Executable",
       "executablePath": "dotnet",
-      "commandLineArgs": "$(VINTAGE_STORY)/Vintagestory.dll \r\n--tracelog \r\n-o modtesting\r\n-p creativebuilding \r\n--addModPath=\"C:\\Users\\heatb\\Desktop\\game dev\\_vintage story modding\\mods\\TieredSuperiority\\TieredSuperiority\\bin\\Debug\\Mods\"",
+      "commandLineArgs": "$(VINTAGE_STORY)/Vintagestory.dll \r\n--tracelog \r\n-o modtesting\r\n-p creativebuilding \r\n--addModPath=\"D:\\Game Dev\\_vintage story modding\\mods\\TieredSuperiority\\TieredSuperiority\\bin\\Debug\\Mods\"",
       "workingDirectory": "$(VINTAGE_STORY)"
     },
     "Server": {

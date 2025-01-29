@@ -27,11 +27,9 @@ namespace TieredSuperiority.src
         internal static bool debugMode = true; // enables verbose debug print statements and debug commands
         const string CONFIG_FILE_NAME = "tieredsuperiorityconfig.json";
         const string PATCH_CODE = "Landar.TieredSuperiority.TieredSuperiorityMain";
-        
-        public Harmony harmony = new Harmony(PATCH_CODE);
 
-        internal static TSConfig config;
-        static Random rand = new();
+        private Harmony _harmony;
+        private static Random rand = new();
 
         static IServerNetworkChannel sSoundChannel;
         IClientNetworkChannel cSoundChannel;
@@ -48,21 +46,35 @@ namespace TieredSuperiority.src
         {
             base.Start(api);
 
-            // register behaviors
-            api.RegisterCollectibleBehaviorClass("TSBehavior", typeof(TSBehavior));
-            api.RegisterCollectibleBehaviorClass("TSBehaviorHammer", typeof(TSBehaviorHammer));
-
             // apply harmony patches
-            harmony.PatchAll();
+            _harmony = new Harmony(PATCH_CODE);
+            _harmony.PatchAll();
 
             if (debugMode)
             {
                 StringBuilder builder = new StringBuilder("Harmony Patched Methods: ");
-                foreach (var val in harmony.GetPatchedMethods())
+                foreach (var val in _harmony.GetPatchedMethods())
                     builder.Append(val.Name + ", ");
 
                 Mod.Logger.Notification(builder.ToString());
             }
+
+            // init configs
+            try
+            {
+                ModConfig configFile;
+                if ((configFile = api.LoadModConfig<ModConfig>(CONFIG_FILE_NAME)) == null)
+                    api.StoreModConfig<ModConfig>(ModConfig.Instance, CONFIG_FILE_NAME);
+                else
+                    ModConfig.Instance = configFile;
+            } catch
+            {
+                api.StoreModConfig<ModConfig>(ModConfig.Instance, CONFIG_FILE_NAME);
+            }
+           
+            // register behaviors
+            api.RegisterCollectibleBehaviorClass("TSBehavior", typeof(TSBehavior));
+            api.RegisterCollectibleBehaviorClass("TSBehaviorHammer", typeof(TSBehaviorHammer));
         }
 
 
@@ -75,16 +87,6 @@ namespace TieredSuperiority.src
             sSoundChannel =
                 sapi.Network.RegisterChannel("refundSoundChannel")
                 .RegisterMessageType(typeof(SoundMessage));
-
-            try 
-            {
-                config = sapi.LoadModConfig<TSConfig>(CONFIG_FILE_NAME);
-            } catch (Exception) { }
-
-            if (config == null)
-                config = new();
-
-            sapi.StoreModConfig(config, CONFIG_FILE_NAME);
 
             if (debugMode)
             {
@@ -128,27 +130,27 @@ namespace TieredSuperiority.src
         }
 
 
-        public static void RefundDurability(CollectibleObject obj, Entity byEntity, ItemSlot itemslot, int selectionTier, int durabilityDiff)
+        public static void RefundDurability(CollectibleObject tool, Entity byEntity, ItemSlot itemslot, int selectionTier, int durabilityDiff)
         {
             if (byEntity.World.Api.Side == EnumAppSide.Client)
                 return;
 
             int adjustedTier = 0;
-            if (obj.ToolTier == 0)
+            if (tool.ToolTier == 0)
             {
-                if (obj.Variant["metal"] != null)
-                    adjustedTier = ResolveTier(obj.Variant["metal"]);
-                else if (obj.Variant["material"] != null)
-                    adjustedTier = ResolveTier(obj.Variant["material"]);
+                if (tool.Variant["metal"] != null)
+                    adjustedTier = ResolveTier(tool.Variant["metal"]);
+                else if (tool.Variant["material"] != null)
+                    adjustedTier = ResolveTier(tool.Variant["material"]);
             }
 
-            int adjustedChance = Math.Clamp(config.chancePerTier, 0, 100);
-            int refundChance = adjustedChance * ((obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) - selectionTier); // by default, 10% per tier difference
+            int adjustedChance = Math.Clamp(ModConfig.Instance.ChancePerTier, 0, 100);
+            int refundChance = adjustedChance * ((tool.ToolTier == 0 ? adjustedTier : tool.ToolTier) - selectionTier); // by default, 10% per tier difference
 
             if (debugMode)
             {
                 sapi.BroadcastMessageToAllGroups("Durability diff: " + durabilityDiff, EnumChatType.Notification);
-                sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (obj.ToolTier == 0 ? adjustedTier : obj.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+                sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (tool.ToolTier == 0 ? adjustedTier : tool.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
             }          
 
             bool playOnce = false;
@@ -156,7 +158,7 @@ namespace TieredSuperiority.src
             {
                 if (rand.Next(100) < refundChance)
                 {
-                    itemslot.Itemstack.Attributes.SetInt("durability", obj.GetRemainingDurability(itemslot.Itemstack) + 1);
+                    itemslot.Itemstack.Attributes.SetInt("durability", tool.GetRemainingDurability(itemslot.Itemstack) + 1);
 
                     if (debugMode)
                     {
@@ -164,7 +166,7 @@ namespace TieredSuperiority.src
                     }
                     
 
-                    if (config.playSound && !playOnce)
+                    if (ModConfig.Instance.PlaySoundOnRefund && !playOnce)
                     {
                         sSoundChannel.SendPacket(new SoundMessage() { shouldPlay = true }, (IServerPlayer)((EntityPlayer)byEntity).Player);
                         playOnce = true;
@@ -311,8 +313,8 @@ namespace TieredSuperiority.src
         {
             base.Dispose();
 
-            if (harmony != null)
-                harmony.UnpatchAll(PATCH_CODE);
+            if (_harmony != null)
+                _harmony.UnpatchAll(PATCH_CODE);
         }
     }
 

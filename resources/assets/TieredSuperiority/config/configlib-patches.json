@@ -1,0 +1,27 @@
+{
+    "version": 1,
+    "file": "tieredsuperiorityconfig.json",
+    "patches": {},
+    "settings": [
+        {
+            "type": "separator",
+            "title": "TieredSuperioritySettings"
+        },
+        {
+            "code": "ChancePerTier",
+            "comment": "ChancePerTierComment",
+            "type": "integer",
+            "default": 10,
+            "range": {
+                "min": 0,
+                "max": 100
+            }
+        },
+        {
+            "code": "PlaySoundOnRefund",
+            "comment": "PlaySoundOnRefundComment",
+            "type": "boolean",
+            "default": true
+        }
+    ]
+}

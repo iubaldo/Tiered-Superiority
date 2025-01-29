@@ -23,9 +23,7 @@ namespace TieredSuperiority.src
             if (byEntity.World.Side == EnumAppSide.Client)
                 return;
 
-            TSBehavior behavior = __instance.GetCollectibleBehavior(typeof(TSBehavior), false) as TSBehavior;
-
-            if (behavior != null)
+            if (__instance.GetCollectibleBehavior(typeof(TSBehavior), false) is TSBehavior behavior)
                 behavior.initDurability = __instance.GetRemainingDurability(itemslot.Itemstack);
         }
 
@@ -45,11 +43,11 @@ namespace TieredSuperiority.src
                 }
                 return;
             }
-                
 
-            TSBehavior behavior = __instance.GetCollectibleBehavior(typeof(TSBehavior), false) as TSBehavior;
+            if (blockSel == null || blockSel.Block == null)
+                return;
 
-            if (behavior == null)
+            if (__instance.GetCollectibleBehavior(typeof(TSBehavior), false) is not TSBehavior behavior)
                 return;
 
             if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - behavior.timeLastCalled < 0.5)
@@ -94,17 +92,18 @@ namespace TieredSuperiority.src
         // Note: ItemScythe extends ItemShears, so only need to patch shears
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ItemShears), "OnBlockBrokenWith")]
-        public static void PrefixShearsOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot)
+        public static void PrefixShearsOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot, ref object __state)
         {
+            __state = ((EntityPlayer)byEntity).BlockSelection;
             PrefixOnBlockBrokenWith(__instance, byEntity, itemslot);
         }
 
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ItemShears), "OnBlockBrokenWith")]
-        public static void PostfixShearsOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot, BlockSelection blockSel)
+        public static void PostfixShearsOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot, object __state)
         {
-            PostfixOnBlockBrokenWith(__instance, byEntity, itemslot, blockSel);
+            PostfixOnBlockBrokenWith(__instance, byEntity, itemslot, __state as BlockSelection);
         }
     }
 }

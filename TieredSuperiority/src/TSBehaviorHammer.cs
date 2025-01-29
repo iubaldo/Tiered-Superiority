@@ -54,6 +54,9 @@ namespace TieredSuperiority.src
             if (!(byEntity.World.BlockAccessor.GetBlock(blockSel.Position) is BlockAnvil)) return;
             BlockEntityAnvil bea = be as BlockEntityAnvil;
 
+            if (bea.WorkItemStack == null)
+                return;
+
             int workitemtier = TieredSuperiorityMain.ResolveTier(bea.WorkItemStack.Item.Variant["metal"]);
 
             TieredSuperiorityMain.RefundDurability(__instance, byEntity, slot, workitemtier, 1);

@@ -1,0 +1,7 @@
+{
+    "TieredSuperioritySettings": "Configure Tiered Superiority Settings",
+    "ChancePerTier": "Chance per tier",
+    "ChancePerTierComment": "Chance for durability refund per additional tier above targeted block tier, in percentage (default: 10%) ex. bronze pickaxe (tier 3) vs stone block (tier 2): (3 - 2) x chancePerTier = final refund chance",
+    "PlaySoundOnRefund": "Play sound on refund",
+    "PlaySoundOnRefundComment": "Whether to play a 'ding' sound on successful durability refund (default: true)"
+}

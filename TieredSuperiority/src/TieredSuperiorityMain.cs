@@ -24,7 +24,7 @@ namespace TieredSuperiority.src
 {
     public class TieredSuperiorityMain: ModSystem
     {
-        internal static bool debugMode = true; // enables verbose debug print statements and debug commands
+        internal static bool debugMode = false; // enables verbose debug print statements and debug commands
         const string CONFIG_FILE_NAME = "tieredsuperiorityconfig.json";
         const string PATCH_CODE = "Landar.TieredSuperiority.TieredSuperiorityMain";
 

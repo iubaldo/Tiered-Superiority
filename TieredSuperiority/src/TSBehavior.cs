@@ -11,6 +11,9 @@ namespace TieredSuperiority.src
     {
         int initDurability;
         long timeLastCalled = -1;
+        // Store additional info to verify item hasn't changed
+        int initItemId;
+        string initItemCode;
 
 
         public TSBehavior(CollectibleObject collObj) : base(collObj) { }
@@ -24,7 +27,11 @@ namespace TieredSuperiority.src
                 return;
 
             if (__instance.GetCollectibleBehavior(typeof(TSBehavior), false) is TSBehavior behavior)
+            {
                 behavior.initDurability = __instance.GetRemainingDurability(itemslot.Itemstack);
+                behavior.initItemId = itemslot.Itemstack.Id;
+                behavior.initItemCode = itemslot.Itemstack.Item.Code.ToString();
+            }
         }
 
 
@@ -39,7 +46,7 @@ namespace TieredSuperiority.src
             {
                 if (TieredSuperiorityMain.debugMode)
                 {
-                    TieredSuperiorityMain.sapi.Logger.Notification("item broke before calculation");
+                    TieredSuperiorityMain.sapi.Logger.Notification("Item broke before calculation");
                 }
                 return;
             }
@@ -49,6 +56,17 @@ namespace TieredSuperiority.src
 
             if (__instance.GetCollectibleBehavior(typeof(TSBehavior), false) is not TSBehavior behavior)
                 return;
+
+            // Verify the item hasn't changed between prefix and postfix
+            if (itemslot.Itemstack.Id != behavior.initItemId || 
+                itemslot.Itemstack.Item.Code.ToString() != behavior.initItemCode)
+            {
+                if (TieredSuperiorityMain.debugMode)
+                {
+                    TieredSuperiorityMain.sapi.Logger.Notification("Item changed between prefix and postfix, skipping refund");
+                }
+                return;
+            }
 
             if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - behavior.timeLastCalled < 0.5)
             {

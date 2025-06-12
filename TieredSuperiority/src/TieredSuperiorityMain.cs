@@ -70,10 +70,8 @@ namespace TieredSuperiority.src
                     JObject configJson = JObject.Parse(File.ReadAllText(path));
                     if (!configJson.ContainsKey("ConfigVersion"))
                     {
-                        if (debugMode)
-                        {
-                            Mod.Logger.Notification("Old config format detected (no version field), creating new default config");
-                        }
+                        Mod.Logger.Notification("Old config format detected (no version field), creating new default config");
+                        
                         ModConfig.Instance = ModConfig.CreateDefault();
                         api.StoreModConfig(ModConfig.Instance, CONFIG_FILE_NAME);
                     }
@@ -82,10 +80,8 @@ namespace TieredSuperiority.src
                         ModConfig configFile = api.LoadModConfig<ModConfig>(CONFIG_FILE_NAME);
                         if (configFile.ConfigVersion != ModConfig.Instance.ConfigVersion)
                         {
-                            if (debugMode)
-                            {
-                                Mod.Logger.Notification($"Config version mismatch (found {configFile.ConfigVersion}, expected {ModConfig.Instance.ConfigVersion}). Creating new default config.");
-                            }
+                            Mod.Logger.Notification($"Config version mismatch (found {configFile.ConfigVersion}, expected {ModConfig.Instance.ConfigVersion}). Creating new default config.");
+                            
                             ModConfig.Instance = ModConfig.CreateDefault();
                             api.StoreModConfig(ModConfig.Instance, CONFIG_FILE_NAME);
                         }
@@ -97,10 +93,8 @@ namespace TieredSuperiority.src
                 }
                 else
                 {
-                    if (debugMode)
-                    {
-                        Mod.Logger.Notification("No config file found, creating new default config");
-                    }
+                    Mod.Logger.Notification("No config file found, creating new default config");
+
                     ModConfig.Instance = ModConfig.CreateDefault();
                     api.StoreModConfig(ModConfig.Instance, CONFIG_FILE_NAME);
                 }

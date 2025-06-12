@@ -1,7 +1,17 @@
 {
     "TieredSuperioritySettings": "Configure Tiered Superiority Settings",
     "ChancePerTier": "Chance per tier",
-    "ChancePerTierComment": "Chance for durability refund per additional tier above targeted block tier, in percentage (default: 10%) ex. bronze pickaxe (tier 3) vs stone block (tier 2): (3 - 2) x chancePerTier = final refund chance",
+    "ChancePerTierComment": "Chance for durability refund per additional tier above targeted block tier, in percentage (default: 10%)\nex. bronze pickaxe (tier 3) vs stone block (tier 2): (3 - 2) x chancePerTier = final refund chance",
     "PlaySoundOnRefund": "Play sound on refund",
-    "PlaySoundOnRefundComment": "Whether to play a 'ding' sound on successful durability refund (default: true)"
+    "PlaySoundOnRefundComment": "Whether to play a 'ding' sound on successful durability refund (default: true)",
+    "EnablePrimitiveRefund": "Enable primitive refund",
+    "EnablePrimitiveRefundComment": "Whether to enable refunds for primitive materials (default: true)",
+    "EnableSoftMetalRefund": "Enable soft metal refund",
+    "EnableSoftMetalRefundComment": "Whether to enable refunds for soft metals (default: true)",
+    "EnableBronzeRefund": "Enable bronze refund",
+    "EnableBronzeRefundComment": "Whether to enable refunds for bronze alloys (default: true)",
+    "EnableIronRefund": "Enable iron refund",
+    "EnableIronRefundComment": "Whether to enable refunds for iron metals (default: true)",
+    "EnableSteelRefund": "Enable steel refund",
+    "EnableSteelRefundComment": "Whether to enable refunds for steel (default: true)"
 }

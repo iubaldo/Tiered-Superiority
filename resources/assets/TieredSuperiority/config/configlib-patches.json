@@ -22,6 +22,36 @@
             "comment": "PlaySoundOnRefundComment",
             "type": "boolean",
             "default": true
+        },
+        {
+            "code": "EnablePrimitiveRefund",
+            "comment": "EnablePrimitiveRefundComment",
+            "type": "boolean",
+            "default": true
+        },
+        {
+            "code": "EnableSoftMetalRefund",
+            "comment": "EnableSoftMetalRefundComment",
+            "type": "boolean",
+            "default": true
+        },
+        {
+            "code": "EnableBronzeRefund",
+            "comment": "EnableBronzeRefundComment",
+            "type": "boolean",
+            "default": true
+        },
+        {
+            "code": "EnableIronRefund",
+            "comment": "EnableIronRefundComment",
+            "type": "boolean",
+            "default": true
+        },
+        {
+            "code": "EnableSteelRefund",
+            "comment": "EnableSteelRefundComment",
+            "type": "boolean",
+            "default": true
         }
     ]
 }

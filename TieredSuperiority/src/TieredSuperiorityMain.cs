@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.IO;
 
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -10,6 +11,7 @@ using ProtoBuf;
 using HarmonyLib;
 using Vintagestory.API.Common.Entities;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 
 /*
@@ -24,8 +26,8 @@ namespace TieredSuperiority.src
 {
     public class TieredSuperiorityMain: ModSystem
     {
-        internal static bool debugMode = true; // enables verbose debug print statements and debug commands
-        const string CONFIG_FILE_NAME = "tieredsuperiorityconfig.json";
+        internal static bool debugMode = false; // enables verbose debug print statements and debug commands
+        const string CONFIG_FILE_NAME = "tieredsuperiorityconfig.json"; // make sure configlib-patches.json matches this
         const string PATCH_CODE = "Landar.TieredSuperiority.TieredSuperiorityMain";
 
         private Harmony _harmony;
@@ -62,14 +64,54 @@ namespace TieredSuperiority.src
             // init configs
             try
             {
-                ModConfig configFile;
-                if ((configFile = api.LoadModConfig<ModConfig>(CONFIG_FILE_NAME)) == null)
-                    api.StoreModConfig<ModConfig>(ModConfig.Instance, CONFIG_FILE_NAME);
+                string path = Path.Combine(api.GetOrCreateDataPath("ModConfig"), CONFIG_FILE_NAME);
+                if (File.Exists(path))
+                {
+                    JObject configJson = JObject.Parse(File.ReadAllText(path));
+                    if (!configJson.ContainsKey("ConfigVersion"))
+                    {
+                        if (debugMode)
+                        {
+                            Mod.Logger.Notification("Old config format detected (no version field), creating new default config");
+                        }
+                        ModConfig.Instance = ModConfig.CreateDefault();
+                        api.StoreModConfig(ModConfig.Instance, CONFIG_FILE_NAME);
+                    }
+                    else
+                    {
+                        ModConfig configFile = api.LoadModConfig<ModConfig>(CONFIG_FILE_NAME);
+                        if (configFile.ConfigVersion != ModConfig.Instance.ConfigVersion)
+                        {
+                            if (debugMode)
+                            {
+                                Mod.Logger.Notification($"Config version mismatch (found {configFile.ConfigVersion}, expected {ModConfig.Instance.ConfigVersion}). Creating new default config.");
+                            }
+                            ModConfig.Instance = ModConfig.CreateDefault();
+                            api.StoreModConfig(ModConfig.Instance, CONFIG_FILE_NAME);
+                        }
+                        else
+                        {
+                            ModConfig.Instance = configFile;
+                        }
+                    }
+                }
                 else
-                    ModConfig.Instance = configFile;
-            } catch
+                {
+                    if (debugMode)
+                    {
+                        Mod.Logger.Notification("No config file found, creating new default config");
+                    }
+                    ModConfig.Instance = ModConfig.CreateDefault();
+                    api.StoreModConfig(ModConfig.Instance, CONFIG_FILE_NAME);
+                }
+            } catch (Exception e)
             {
-                api.StoreModConfig<ModConfig>(ModConfig.Instance, CONFIG_FILE_NAME);
+                Mod.Logger.Error($"Failed to load config file: {e.Message}");
+                
+                ModConfig.Instance = ModConfig.CreateDefault();
+                api.StoreModConfig(ModConfig.Instance, CONFIG_FILE_NAME);
+
+                Mod.Logger.Notification("Created new config file due to error in existing config");
             }
            
             // register behaviors
@@ -136,21 +178,38 @@ namespace TieredSuperiority.src
                 return;
 
             int adjustedTier = 0;
+            string material = null;
             if (tool.ToolTier == 0)
             {
                 if (tool.Variant["metal"] != null)
-                    adjustedTier = ResolveTier(tool.Variant["metal"]);
+                {
+                    material = tool.Variant["metal"];
+                    adjustedTier = ResolveTier(material);
+                }
                 else if (tool.Variant["material"] != null)
-                    adjustedTier = ResolveTier(tool.Variant["material"]);
+                {
+                    material = tool.Variant["material"];
+                    adjustedTier = ResolveTier(material);
+                }
             }
 
-            int adjustedChance = Math.Clamp(ModConfig.Instance.ChancePerTier, 0, 100);
-            int refundChance = adjustedChance * ((tool.ToolTier == 0 ? adjustedTier : tool.ToolTier) - selectionTier); // by default, 10% per tier difference
+            // Check if refund is enabled for this material
+            if (!IsRefundEnabledForMaterial(material))
+            {
+                if (debugMode)
+                {
+                    sapi.Logger.Notification("Refund disabled for material: " + material);
+                }
+                return;
+            }
+
+            int chancePerTierClamped = Math.Clamp(ModConfig.Instance.ChancePerTier, 0, 100);
+            int refundChance = chancePerTierClamped * ((tool.ToolTier == 0 ? adjustedTier : tool.ToolTier) - selectionTier); // by default, 10% per tier difference
 
             if (debugMode)
             {
                 sapi.BroadcastMessageToAllGroups("Durability diff: " + durabilityDiff, EnumChatType.Notification);
-                sapi.BroadcastMessageToAllGroups("Refund Chance: " + refundChance + " x " + "(" + (tool.ToolTier == 0 ? adjustedTier : tool.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
+                sapi.BroadcastMessageToAllGroups("Refund Chance: " + chancePerTierClamped + " x " + "(" + (tool.ToolTier == 0 ? adjustedTier : tool.ToolTier) + " - " + selectionTier + ") = " + refundChance + "%", EnumChatType.Notification);
             }          
 
             bool playOnce = false;
@@ -317,6 +376,47 @@ namespace TieredSuperiority.src
 
             if (_harmony != null)
                 _harmony.UnpatchAll(PATCH_CODE);
+        }
+
+        private static bool IsRefundEnabledForMaterial(string material)
+        {
+            if (material == null) return true; // Default to true for non-material tools
+
+            // Primitive Materials (Tier 1)
+            if (material.StartsWith("bone") || 
+                material == "chert" || material == "granite" || material == "andesite" || 
+                material == "basalt" || material == "obsidian" || material == "peridotite" || 
+                material == "flint")
+            {
+                return ModConfig.Instance.EnablePrimitiveRefund;
+            }
+
+            // Soft Metals (Tier 2)
+            if (material == "copper" || material == "bismuth" || material == "silver" || 
+                material == "gold" || material == "scrap" || material == "ruined")
+            {
+                return ModConfig.Instance.EnableSoftMetalRefund;
+            }
+
+            // Bronze Alloys (Tier 3)
+            if (material == "tinbronze" || material == "bismuthbronze" || material == "blackbronze")
+            {
+                return ModConfig.Instance.EnableBronzeRefund;
+            }
+
+            // Iron Metals (Tier 4)
+            if (material == "iron" || material == "meteoriciron")
+            {
+                return ModConfig.Instance.EnableIronRefund;
+            }
+
+            // Steel (Tier 5)
+            if (material == "steel")
+            {
+                return ModConfig.Instance.EnableSteelRefund;
+            }
+
+            return true; // Default to true for unknown materials
         }
     }
 

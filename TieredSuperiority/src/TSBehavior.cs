@@ -9,11 +9,11 @@ namespace TieredSuperiority.src
     [HarmonyPatch]
     public class TSBehavior : CollectibleBehavior
     {
-        int initDurability;
-        long timeLastCalled = -1;
-        // Store additional info to verify item hasn't changed
-        int initItemId;
-        string initItemCode;
+        protected int initDurability;
+        protected long timeLastCalled = -1;
+        // verify item hasn't changed
+        protected int initItemId;
+        protected string initItemCode;
 
 
         public TSBehavior(CollectibleObject collObj) : base(collObj) { }
@@ -42,14 +42,8 @@ namespace TieredSuperiority.src
             if (byEntity.World.Side == EnumAppSide.Client)
                 return;
 
-            if (itemslot.Itemstack == null)
-            {
-                if (TieredSuperiorityMain.debugMode)
-                {
-                    TieredSuperiorityMain.sapi.Logger.Notification("Item broke before calculation");
-                }
+            if (!ValidateItemStack(itemslot, __instance))
                 return;
-            }
 
             if (blockSel == null || blockSel.Block == null)
                 return;
@@ -57,23 +51,11 @@ namespace TieredSuperiority.src
             if (__instance.GetCollectibleBehavior(typeof(TSBehavior), false) is not TSBehavior behavior)
                 return;
 
-            // Verify the item hasn't changed between prefix and postfix
-            if (itemslot.Itemstack.Id != behavior.initItemId || 
-                itemslot.Itemstack.Item.Code.ToString() != behavior.initItemCode)
-            {
-                if (TieredSuperiorityMain.debugMode)
-                {
-                    TieredSuperiorityMain.sapi.Logger.Notification("Item changed between prefix and postfix, skipping refund");
-                }
+            if (!ValidateItemChange(itemslot, behavior))
                 return;
-            }
 
-            if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - behavior.timeLastCalled < 0.5)
-            {
-                behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+            if (!ValidateRateLimit(behavior))
                 return;
-            }
-            behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
 
             int durabilityDiff = behavior.initDurability - __instance.GetRemainingDurability(itemslot.Itemstack);
             int selectionTier = blockSel.Block.RequiredMiningTier;
@@ -122,6 +104,51 @@ namespace TieredSuperiority.src
         public static void PostfixShearsOnBlockBrokenWith(CollectibleObject __instance, Entity byEntity, ItemSlot itemslot, object __state)
         {
             PostfixOnBlockBrokenWith(__instance, byEntity, itemslot, __state as BlockSelection);
+        }
+
+
+        // Common validation methods
+        protected static bool ValidateItemStack(ItemSlot itemslot, CollectibleObject collectible)
+        {
+            if (itemslot.Itemstack == null)
+            {
+                if (TieredSuperiorityMain.debugMode)
+                {
+                    TieredSuperiorityMain.sapi.Logger.Notification("Item broke before calculation");
+                }
+
+                return false;
+            }
+            
+            return true;
+        }
+
+        protected static bool ValidateItemChange(ItemSlot itemslot, TSBehavior behavior)
+        {
+            if (itemslot.Itemstack.Id != behavior.initItemId || 
+                itemslot.Itemstack.Item.Code.ToString() != behavior.initItemCode)
+            {
+                if (TieredSuperiorityMain.debugMode)
+                {
+                    TieredSuperiorityMain.sapi.Logger.Notification("Item changed between prefix and postfix, skipping refund");
+                }
+
+                return false;
+            }
+            
+            return true;
+        }
+
+        protected static bool ValidateRateLimit(TSBehavior behavior)
+        {
+            if (TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds - behavior.timeLastCalled < 0.5)
+            {
+                behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+                return false;
+            }
+
+            behavior.timeLastCalled = TieredSuperiorityMain.sapi.World.Calendar.ElapsedSeconds;
+            return true;
         }
     }
 }

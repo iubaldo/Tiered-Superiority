@@ -80,9 +80,11 @@ namespace TieredSuperiority.src
                         ModConfig configFile = api.LoadModConfig<ModConfig>(CONFIG_FILE_NAME);
                         if (configFile.ConfigVersion != ModConfig.Instance.ConfigVersion)
                         {
-                            Mod.Logger.Notification($"Config version mismatch (found {configFile.ConfigVersion}, expected {ModConfig.Instance.ConfigVersion}). Creating new default config.");
+                            Mod.Logger.Notification($"Config version mismatch (found {configFile.ConfigVersion}, expected {ModConfig.Instance.ConfigVersion}). Migrating compatible settings.");
                             
-                            ModConfig.Instance = ModConfig.CreateDefault();
+                            ModConfig newConfig = ModConfig.CreateDefault();
+                            MigrateConfigSettings(configFile, newConfig);
+                            ModConfig.Instance = newConfig;
                             api.StoreModConfig(ModConfig.Instance, CONFIG_FILE_NAME);
                         }
                         else
@@ -411,6 +413,42 @@ namespace TieredSuperiority.src
             }
 
             return true; // Default to true for unknown materials
+        }
+
+
+        // Migrate each config property that matches between versions
+        private void MigrateConfigSettings(ModConfig oldConfig, ModConfig newConfig)
+        {
+            try
+            {
+                var properties = typeof(ModConfig).GetProperties();
+                
+                foreach (var property in properties)
+                {
+                    if (property.Name == "ConfigVersion")
+                        continue;
+                    
+                    if (property.Name == "Instance")
+                        continue;
+                    
+                    try
+                    {
+                        // Get value from old config and set it in the new config
+                        var oldValue = property.GetValue(oldConfig);
+                        property.SetValue(newConfig, oldValue);
+                        
+                        Mod.Logger.Notification($"Migrated config setting: {property.Name}");
+                    } catch (Exception ex)
+                    {
+                        Mod.Logger.Notification($"Failed to migrate config setting {property.Name}: {ex.Message}");
+                    }
+                }
+
+                Mod.Logger.Notification("Config migration completed successfully");
+            } catch (Exception e)
+            {
+                Mod.Logger.Error($"Error during config migration: {e.Message}");
+            }
         }
     }
 

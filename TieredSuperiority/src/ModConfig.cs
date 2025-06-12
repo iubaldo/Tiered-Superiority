@@ -19,44 +19,37 @@ namespace TieredSuperiority.src
         /// Chance for durability refund per additional tier above targeted block tier
         /// ex. bronze pickaxe (tier 3) vs stone block (tier 2) -> (3 - 2) x chancePerTier = final refund chance
         /// </summary>
-        public int ChancePerTier { get { return _chancePerTier; } set { _chancePerTier = (value >= 0) ? value : 0; } }
-        public int _chancePerTier = 10;
+        public int ChancePerTier { get; set; } = 10;
 
         /// <summary>
         /// Whether or not to play a 'ding' sound upon refund
         /// </summary>
-        public bool PlaySoundOnRefund { get { return _playSoundOnRefund; } set { _playSoundOnRefund = value; } }
-        public bool _playSoundOnRefund = true;
+        public bool PlaySoundOnRefund { get; set; } = true;
 
         /// <summary>
         /// Toggle for enabling refunds for Primitive Materials (Tier 1)
         /// </summary>
-        public bool EnablePrimitiveRefund { get { return _enablePrimitiveRefund; } set { _enablePrimitiveRefund = value; } }
-        public bool _enablePrimitiveRefund = true;
+        public bool EnablePrimitiveRefund { get; set; } = true;
 
         /// <summary>
         /// Toggle for enabling refunds for Soft Metals (Tier 2)
         /// </summary>
-        public bool EnableSoftMetalRefund { get { return _enableSoftMetalRefund; } set { _enableSoftMetalRefund = value; } }
-        public bool _enableSoftMetalRefund = true;
+        public bool EnableSoftMetalRefund { get; set; } = true;
 
         /// <summary>
         /// Toggle for enabling refunds for Bronze Alloys (Tier 3)
         /// </summary>
-        public bool EnableBronzeRefund { get { return _enableBronzeRefund; } set { _enableBronzeRefund = value; } }
-        public bool _enableBronzeRefund = true;
+        public bool EnableBronzeRefund { get; set; } = true;
 
         /// <summary>
         /// Toggle for enabling refunds for Iron Metals (Tier 4)
         /// </summary>
-        public bool EnableIronRefund { get { return _enableIronRefund; } set { _enableIronRefund = value; } }
-        public bool _enableIronRefund = true;
+        public bool EnableIronRefund { get; set; } = true;
 
         /// <summary>
         /// Toggle for enabling refunds for Steel (Tier 5)
         /// </summary>
-        public bool EnableSteelRefund { get { return _enableSteelRefund; } set { _enableSteelRefund = value; } }
-        public bool _enableSteelRefund = true;
+        public bool EnableSteelRefund { get; set; } = true;
 
         /// <summary>
         /// Creates a new config with default values
